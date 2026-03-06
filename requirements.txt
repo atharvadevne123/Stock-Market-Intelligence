@@ -1,0 +1,45 @@
+# Core Dependencies
+python-dotenv==1.0.0
+requests==2.31.0
+
+# Web Scraping & Parsing
+beautifulsoup4==4.12.2
+feedparser==6.0.10
+lxml==4.9.3
+selenium==4.15.2
+
+# Reddit API (PRAW)
+praw==7.7.0
+
+# NLP & Sentiment Analysis (Python 3.9 compatible)
+transformers==4.36.2
+torch==2.1.2
+datasets==2.14.5
+
+# Financial Data & Technical Analysis (Python 3.9 compatible)
+yfinance==0.2.32
+pandas==2.0.3
+pandas-ta-classic>=0.3.78
+numpy>=2.0.0
+
+# API & Web Framework
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# Database
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.13.0
+
+# Data Processing
+python-dateutil==2.8.2
+
+# Utilities
+click==8.1.7
+
+# Development (optional)
+pytest==7.4.3
+black==23.11.0
+flake8==6.1.0

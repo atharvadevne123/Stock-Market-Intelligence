@@ -1,0 +1,546 @@
+"""
+Stock Market Intelligence - FastAPI Backend
+RESTful API for the stock market intelligence system
+"""
+
+import logging
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
+from typing import List, Optional, Dict
+from datetime import datetime
+import json
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Initialize FastAPI app
+app = FastAPI(
+    title="Stock Market Intelligence API",
+    description="AI-powered stock market analysis with sentiment, technical, and signal generation",
+    version="1.0.0"
+)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Import components
+try:
+    from scraper.news_scraper import NewsAggregator
+    from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer
+    from analysis.signal_engine import ComprehensiveSignalEngine
+    from main_orchestrator import StockMarketIntelligence
+    logger.info("✅ All modules imported successfully")
+except Exception as e:
+    logger.error(f"Error importing modules: {e}")
+    raise
+
+
+# ============================================================================
+# Pydantic Models for Request/Response
+# ============================================================================
+
+class TickerRequest(BaseModel):
+    """Request model for single ticker analysis"""
+    ticker: str = Field(..., description="Stock ticker symbol (e.g., AAPL)")
+    hours: int = Field(24, description="Hours of news to analyze")
+
+
+class PortfolioRequest(BaseModel):
+    """Request model for portfolio analysis"""
+    tickers: List[str] = Field(..., description="List of stock ticker symbols")
+    hours: int = Field(24, description="Hours of news to analyze")
+
+
+class SentimentRequest(BaseModel):
+    """Request model for sentiment analysis"""
+    title: str = Field(..., description="Article title")
+    content: str = Field(..., description="Article content")
+
+
+class HealthResponse(BaseModel):
+    """Response model for health check"""
+    status: str
+    timestamp: datetime
+    message: str
+
+
+class SignalResponse(BaseModel):
+    """Response model for trading signals"""
+    ticker: str
+    final_signal: str
+    combined_score: float
+    confidence: float
+    price_change_percent: Optional[float]
+
+
+# ============================================================================
+# Initialize System Components
+# ============================================================================
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize system on startup"""
+    logger.info("Initializing Stock Market Intelligence System...")
+    try:
+        global system, news_agg, sentiment_analyzer, signal_engine
+        system = StockMarketIntelligence()
+        news_agg = NewsAggregator()
+        sentiment_analyzer = NewsArticleSentimentAnalyzer()
+        signal_engine = ComprehensiveSignalEngine()
+        logger.info("✅ System initialized successfully")
+    except Exception as e:
+        logger.error(f"Error during startup: {e}")
+        raise
+
+
+# ============================================================================
+# Health & Status Endpoints
+# ============================================================================
+
+@app.get("/", tags=["Health"])
+async def root():
+    """Root endpoint with API info"""
+    return {
+        "name": "Stock Market Intelligence API",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "status": "running"
+    }
+
+
+@app.get("/health", tags=["Health"], response_model=HealthResponse)
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.now(),
+        "message": "Stock Market Intelligence API is running"
+    }
+
+
+@app.get("/status", tags=["Health"])
+async def status():
+    """System status endpoint"""
+    return {
+        "status": "operational",
+        "components": {
+            "news_scraper": "ready",
+            "sentiment_analyzer": "ready",
+            "signal_engine": "ready",
+            "orchestrator": "ready"
+        },
+        "timestamp": datetime.now().isoformat()
+    }
+
+
+# ============================================================================
+# Analysis Endpoints
+# ============================================================================
+
+@app.get("/api/analyze/{ticker}", tags=["Analysis"])
+async def analyze_ticker(
+    ticker: str = "AAPL",
+    hours: int = Query(24, description="Hours of news to analyze")
+):
+    """
+    Analyze a single stock ticker
+    
+    Returns comprehensive analysis including:
+    - News articles
+    - Sentiment scores
+    - Technical signals
+    - BUY/SELL/HOLD recommendation
+    """
+    try:
+        logger.info(f"Analyzing ticker: {ticker}")
+        result = system.analyze_ticker(ticker, hours=hours)
+        return result
+    except Exception as e:
+        logger.error(f"Error analyzing {ticker}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/analyze/batch", tags=["Analysis"])
+async def analyze_batch(request: PortfolioRequest):
+    """
+    Analyze multiple stock tickers at once
+    
+    Returns analysis for each ticker plus portfolio summary
+    """
+    try:
+        logger.info(f"Analyzing portfolio: {request.tickers}")
+        result = system.analyze_portfolio(request.tickers, hours=request.hours)
+        return result
+    except Exception as e:
+        logger.error(f"Error analyzing portfolio: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/portfolio", tags=["Analysis"])
+async def get_portfolio_analysis(
+    tickers: str = Query(..., description="Comma-separated list of tickers (e.g., AAPL,MSFT,GOOGL)"),
+    hours: int = Query(24, description="Hours of news to analyze")
+):
+    """
+    Analyze a portfolio with comma-separated tickers
+    
+    Example: /api/portfolio?tickers=AAPL,MSFT,GOOGL&hours=24
+    """
+    try:
+        ticker_list = [t.strip().upper() for t in tickers.split(",")]
+        logger.info(f"Analyzing portfolio: {ticker_list}")
+        result = system.analyze_portfolio(ticker_list, hours=hours)
+        return result
+    except Exception as e:
+        logger.error(f"Error analyzing portfolio: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# News Endpoints
+# ============================================================================
+
+@app.get("/api/news/market", tags=["News"])
+async def get_market_news(hours: int = Query(24, description="Hours to look back")):
+    """Get general market news"""
+    try:
+        logger.info(f"Fetching market news from last {hours} hours")
+        articles = news_agg.get_market_news(hours=hours)
+        return {
+            "articles_found": len(articles),
+            "articles": [article.to_dict() for article in articles[:20]]
+        }
+    except Exception as e:
+        logger.error(f"Error fetching market news: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/news/{ticker}", tags=["News"])
+async def get_ticker_news(
+    ticker: str,
+    hours: int = Query(24, description="Hours to look back")
+):
+    """Get news specific to a ticker"""
+    try:
+        logger.info(f"Fetching news for {ticker}")
+        articles = news_agg.get_ticker_news(ticker, hours=hours)
+        return {
+            "ticker": ticker,
+            "articles_found": len(articles),
+            "articles": [article.to_dict() for article in articles[:20]]
+        }
+    except Exception as e:
+        logger.error(f"Error fetching news for {ticker}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/news/search", tags=["News"])
+async def search_news(
+    query: str = Query(..., description="Search query"),
+    hours: int = Query(24, description="Hours to look back")
+):
+    """Search for news matching a query"""
+    try:
+        logger.info(f"Searching news for: {query}")
+        articles = news_agg.search_news(query, hours=hours)
+        return {
+            "query": query,
+            "articles_found": len(articles),
+            "articles": [article.to_dict() for article in articles[:20]]
+        }
+    except Exception as e:
+        logger.error(f"Error searching news: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Sentiment Analysis Endpoints
+# ============================================================================
+
+@app.post("/api/sentiment/analyze", tags=["Sentiment"])
+async def analyze_sentiment(request: SentimentRequest):
+    """
+    Analyze sentiment of an article
+    
+    Takes title and content, returns sentiment classification and scores
+    """
+    try:
+        logger.info(f"Analyzing sentiment for article: {request.title[:50]}...")
+        result = sentiment_analyzer.analyze_article(request.title, request.content)
+        return result
+    except Exception as e:
+        logger.error(f"Error analyzing sentiment: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/sentiment/{ticker}", tags=["Sentiment"])
+async def get_ticker_sentiment(
+    ticker: str,
+    hours: int = Query(24, description="Hours to look back")
+):
+    """
+    Get aggregated sentiment for a ticker
+    
+    Analyzes all recent news articles for the ticker
+    """
+    try:
+        logger.info(f"Getting sentiment for {ticker}")
+        articles = news_agg.get_ticker_news(ticker, hours=hours)
+        
+        if not articles:
+            return {
+                "ticker": ticker,
+                "articles_analyzed": 0,
+                "sentiment_distribution": {},
+                "trend": "UNKNOWN"
+            }
+        
+        # Analyze sentiment of articles
+        sentiment_results = []
+        for article in articles[:10]:
+            try:
+                sentiment = sentiment_analyzer.analyze_article(
+                    title=article.title,
+                    content=article.content
+                )
+                sentiment_results.append(sentiment)
+            except:
+                pass
+        
+        # Calculate aggregates
+        positive = sum(1 for s in sentiment_results if s.get('combined_sentiment') == 'positive')
+        negative = sum(1 for s in sentiment_results if s.get('combined_sentiment') == 'negative')
+        neutral = sum(1 for s in sentiment_results if s.get('combined_sentiment') == 'neutral')
+        
+        total = len(sentiment_results)
+        
+        # Determine trend
+        if total == 0:
+            trend = "UNKNOWN"
+        elif positive / total > 0.55:
+            trend = "BULLISH"
+        elif negative / total > 0.55:
+            trend = "BEARISH"
+        else:
+            trend = "NEUTRAL"
+        
+        return {
+            "ticker": ticker,
+            "articles_analyzed": total,
+            "sentiment_distribution": {
+                "positive": positive,
+                "negative": negative,
+                "neutral": neutral
+            },
+            "sentiment_ratios": {
+                "positive": round(positive / total, 3) if total > 0 else 0,
+                "negative": round(negative / total, 3) if total > 0 else 0,
+                "neutral": round(neutral / total, 3) if total > 0 else 0
+            },
+            "trend": trend
+        }
+    except Exception as e:
+        logger.error(f"Error getting sentiment for {ticker}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Signal Endpoints
+# ============================================================================
+
+@app.get("/api/signals/{ticker}", tags=["Signals"])
+async def get_trading_signal(ticker: str):
+    """
+    Get comprehensive trading signal for a ticker
+    
+    Combines technical analysis and sentiment analysis
+    Returns: STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL
+    """
+    try:
+        logger.info(f"Generating signal for {ticker}")
+        result = signal_engine.generate_signal(ticker)
+        return result
+    except Exception as e:
+        logger.error(f"Error generating signal for {ticker}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/signals/batch", tags=["Signals"])
+async def get_signals_batch(request: PortfolioRequest):
+    """
+    Get trading signals for multiple tickers
+    """
+    try:
+        logger.info(f"Generating signals for: {request.tickers}")
+        signals = {}
+        for ticker in request.tickers:
+            try:
+                signal = signal_engine.generate_signal(ticker)
+                signals[ticker] = signal
+            except Exception as e:
+                logger.warning(f"Error generating signal for {ticker}: {e}")
+                signals[ticker] = {"error": str(e)}
+        
+        return {
+            "tickers": request.tickers,
+            "signals": signals,
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error generating signals: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Technical Analysis Endpoints
+# ============================================================================
+
+@app.get("/api/technical/{ticker}", tags=["Technical"])
+async def get_technical_analysis(ticker: str):
+    """
+    Get technical analysis for a ticker
+    
+    Returns: RSI, MACD, Bollinger Bands, Moving Averages
+    """
+    try:
+        logger.info(f"Getting technical analysis for {ticker}")
+        result = signal_engine.technical_generator.generate_technical_signal(ticker)
+        return result
+    except Exception as e:
+        logger.error(f"Error getting technical analysis for {ticker}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Market Overview Endpoints
+# ============================================================================
+
+@app.get("/api/market/overview", tags=["Market"])
+async def get_market_overview(hours: int = Query(24, description="Hours to analyze")):
+    """
+    Get overall market sentiment and trends
+    
+    Analyzes recent news across all sources
+    """
+    try:
+        logger.info("Getting market overview")
+        market = system.get_market_overview(hours=hours)
+        return market
+    except Exception as e:
+        logger.error(f"Error getting market overview: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Utility Endpoints
+# ============================================================================
+
+@app.get("/api/tickers/popular", tags=["Utility"])
+async def get_popular_tickers():
+    """Get list of popular stock tickers to analyze"""
+    popular = {
+        "mega_cap": ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"],
+        "tech": ["TSLA", "META", "NFLX", "ADBE", "CRM"],
+        "banking": ["JPM", "BAC", "WFC", "GS", "MS"],
+        "automotive": ["TSLA", "F", "GM", "TM", "BMW"],
+        "energy": ["XOM", "CVX", "COP", "SLB", "EOG"]
+    }
+    return {
+        "categories": popular,
+        "note": "These are example tickers - analyze any valid stock symbol"
+    }
+
+
+@app.get("/api/signals/interpretation", tags=["Utility"])
+async def get_signal_interpretation():
+    """Explanation of what each trading signal means"""
+    return {
+        "STRONG_BUY": {
+            "description": "Very strong buy signal",
+            "meaning": "3-4 technical/sentiment indicators agree on buying",
+            "confidence": "80%+"
+        },
+        "BUY": {
+            "description": "Buy signal",
+            "meaning": "2 indicators agree on buying",
+            "confidence": "50-80%"
+        },
+        "HOLD": {
+            "description": "Hold / Mixed signals",
+            "meaning": "Indicators are mixed or neutral",
+            "confidence": "0-50%"
+        },
+        "SELL": {
+            "description": "Sell signal",
+            "meaning": "2 indicators agree on selling",
+            "confidence": "50-80%"
+        },
+        "STRONG_SELL": {
+            "description": "Very strong sell signal",
+            "meaning": "3-4 indicators agree on selling",
+            "confidence": "80%+"
+        }
+    }
+
+
+# ============================================================================
+# Error Handlers
+# ============================================================================
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc):
+    """Custom HTTP exception handler"""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "error": exc.detail,
+            "status_code": exc.status_code,
+            "timestamp": datetime.now().isoformat()
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request, exc):
+    """General exception handler"""
+    logger.error(f"Unhandled exception: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": "Internal server error",
+            "details": str(exc),
+            "timestamp": datetime.now().isoformat()
+        },
+    )
+
+
+# ============================================================================
+# Run the Server
+# ============================================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    print("\n" + "=" * 80)
+    print("STARTING STOCK MARKET INTELLIGENCE API")
+    print("=" * 80)
+    print("\n📍 API will be available at: http://localhost:8000")
+    print("📚 Interactive docs at: http://localhost:8000/docs")
+    print("📖 ReDoc docs at: http://localhost:8000/redoc")
+    print("\n" + "=" * 80 + "\n")
+    
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000,
+        log_level="info"
+    )

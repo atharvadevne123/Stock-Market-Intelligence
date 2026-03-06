@@ -1,0 +1,20 @@
+{
+  "timestamp": "2026-03-06T13:23:00.679010",
+  "articles_analyzed": 20,
+  "sentiment_distribution": {
+    "positive": 2,
+    "negative": 5,
+    "neutral": 13
+  },
+  "sentiment_ratios": {
+    "positive": 0.1,
+    "negative": 0.25,
+    "neutral": 0.65
+  },
+  "market_trend": "NEUTRAL",
+  "top_sources": [
+    "seeking_alpha",
+    "market_watch",
+    "bloomberg"
+  ]
+}
