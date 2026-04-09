@@ -1,0 +1,77 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  @apply selection:bg-primary selection:text-on-primary;
+}
+
+html {
+  @apply dark;
+}
+
+body {
+  @apply bg-surface text-on-surface font-body;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #060e20;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #2d3449;
+  border-radius: 2px;
+}
+
+.glass-effect {
+  @apply backdrop-blur-xl bg-opacity-80;
+}
+
+.terminal-glow {
+  @apply shadow-[0_0_15px_rgba(78,222,163,0.15)];
+}
+
+.buy-signal-glow {
+  @apply shadow-[0_0_8px_rgba(78,222,163,0.4)];
+}
+
+.sell-signal-glow {
+  @apply shadow-[0_0_8px_rgba(255,178,183,0.4)];
+}
+
+.glass-polish {
+  @apply bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-xl;
+}
+
+.tonal-shift {
+  @apply bg-gradient-to-b from-surface-container-low to-surface;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b1326;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2d3449;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4edea3;
+}

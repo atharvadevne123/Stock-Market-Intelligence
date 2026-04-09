@@ -1,22 +1,22 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
-import Navbar from './components/Navbar';
-import Dashboard from './components/Dashboard';
+import './index.css';
+import DashboardPage from './pages/DashboardPage';
+import TickerPage from './pages/TickerPage';
 import PortfolioPage from './pages/PortfolioPage';
 import MarketPage from './pages/MarketPage';
+import SignalsPage from './pages/SignalsPage';
 
 function App() {
   return (
     <Router>
-      <div className="app">
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/portfolio" element={<PortfolioPage />} />
-          <Route path="/market" element={<MarketPage />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<DashboardPage />} />
+        <Route path="/ticker/nvda" element={<TickerPage />} />
+        <Route path="/portfolio" element={<PortfolioPage />} />
+        <Route path="/market" element={<MarketPage />} />
+        <Route path="/signals" element={<SignalsPage />} />
+      </Routes>
     </Router>
   );
 }
