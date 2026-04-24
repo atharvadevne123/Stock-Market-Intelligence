@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "stock-market-intelligence-py"
+version = "1.0.0"
+description = "Stock market data analysis and intelligence platform"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "atharvadevne123", email = "devneatharva@gmail.com"}]
+
+[tool.setuptools.packages.find]
+where = ["."]
