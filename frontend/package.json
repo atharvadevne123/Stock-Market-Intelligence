@@ -1,8 +1,10 @@
 {
-  "name": "stock-market-intelligence",
+  "name": "@atharvadevne123/stock-market-intelligence",
   "version": "1.0.0",
-  "private": true,
   "homepage": ".",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
