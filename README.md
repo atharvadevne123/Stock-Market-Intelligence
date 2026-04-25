@@ -1,3 +1,5 @@
+![Docker](https://github.com/atharvadevne123/Stock-Market-Intelligence/actions/workflows/docker-publish.yml/badge.svg) ![Python Package](https://github.com/atharvadevne123/Stock-Market-Intelligence/actions/workflows/python-publish.yml/badge.svg) ![npm](https://github.com/atharvadevne123/Stock-Market-Intelligence/actions/workflows/npm-publish.yml/badge.svg) ![Bump Version](https://github.com/atharvadevne123/Stock-Market-Intelligence/actions/workflows/bump-version.yml/badge.svg)
+
 # Stock Market Intelligence 📈
 
 A comprehensive **open-source stock market intelligence system** that combines CEO earnings call sentiment analysis, live market news scraping, and technical indicators to generate **BUY/SELL/HOLD signals**.
