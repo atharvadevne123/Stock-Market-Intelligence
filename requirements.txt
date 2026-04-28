@@ -1,6 +1,6 @@
 # Core Dependencies
 python-dotenv==1.0.0
-requests==2.31.0
+requests==2.32.5
 
 # Web Scraping & Parsing
 beautifulsoup4==4.12.2
