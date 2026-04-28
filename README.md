@@ -1,4 +1,3 @@
-![Docker](https://github.com/atharvadevne123/Stock-Market-Intelligence/actions/workflows/docker-publish.yml/badge.svg) ![Python Package](https://github.com/atharvadevne123/Stock-Market-Intelligence/actions/workflows/python-publish.yml/badge.svg) ![npm](https://github.com/atharvadevne123/Stock-Market-Intelligence/actions/workflows/npm-publish.yml/badge.svg) ![Bump Version](https://github.com/atharvadevne123/Stock-Market-Intelligence/actions/workflows/bump-version.yml/badge.svg)
 
 # Stock Market Intelligence — Sovereign Terminal
 
