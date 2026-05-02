@@ -12,7 +12,7 @@ selenium==4.15.2
 praw==7.7.0
 
 # NLP & Sentiment Analysis (Python 3.9 compatible)
-transformers==4.36.2
+transformers==4.57.6
 torch==2.1.2
 datasets==2.14.5
 
