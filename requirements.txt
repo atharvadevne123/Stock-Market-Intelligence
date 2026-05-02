@@ -37,7 +37,7 @@ alembic==1.13.0
 python-dateutil==2.8.2
 
 # Utilities
-click==8.1.7
+click==8.1.8
 
 # Development (optional)
 pytest==8.4.2
