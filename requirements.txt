@@ -18,7 +18,7 @@ datasets==2.14.5
 
 # Financial Data & Technical Analysis (Python 3.9 compatible)
 yfinance==0.2.32
-pandas==2.0.3
+pandas==2.3.3
 pandas-ta-classic>=0.3.78
 numpy>=2.0.0
 
