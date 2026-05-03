@@ -4,7 +4,7 @@ requests==2.32.5
 
 # Web Scraping & Parsing
 beautifulsoup4==4.12.2
-feedparser==6.0.10
+feedparser==6.0.12
 lxml==4.9.3
 selenium==4.15.2
 
