@@ -1,39 +1,95 @@
-"""
-Database integration for FastAPI
-"""
+"""Database service layer and FastAPI dependency for Stock Market Intelligence."""
+from __future__ import annotations
+
+import logging
+from collections.abc import Generator
+from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
-from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+def get_db() -> Generator[Session, None, None]:
+    """FastAPI dependency that yields a database session and ensures cleanup.
+
+    Yields:
+        An active SQLAlchemy session.
+    """
+    from database.models import SessionLocal
+
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 class DatabaseService:
+    """Static service methods for persisting and querying stock intelligence data."""
+
     @staticmethod
-    def save_article(db: Session, ticker: str, title: str, content: str, source: str, url: str):
-        """Save article to database"""
+    def save_article(
+        db: Session,
+        ticker: str,
+        title: str,
+        content: str,
+        source: str,
+        url: str,
+    ):
+        """Persist a news article to the database.
+
+        Args:
+            db: Active database session.
+            ticker: Stock ticker symbol.
+            title: Article headline.
+            content: Article body text.
+            source: Publisher name.
+            url: Canonical article URL (unique constraint).
+
+        Returns:
+            Persisted Article ORM instance, or None on error.
+        """
         try:
             from database.models import Article
+
             article = Article(
                 ticker=ticker,
                 title=title,
                 content=content,
                 source=source,
                 url=url,
-                published_date=datetime.utcnow()
+                published_date=datetime.utcnow(),
             )
             db.add(article)
             db.commit()
+            db.refresh(article)
             return article
-        except Exception as e:
+        except Exception:
             db.rollback()
-            print(f"Error saving article: {e}")
+            logger.exception("Error saving article for ticker %s", ticker)
             return None
 
     @staticmethod
-    def save_signal(db: Session, ticker: str, signal_type: str, combined_score: float,
-                    technical_score: float, sentiment_score: float, confidence: float,
-                    latest_price: float, price_change_percent: float):
-        """Save signal to database"""
+    def save_signal(
+        db: Session,
+        ticker: str,
+        signal_type: str,
+        combined_score: float,
+        technical_score: float,
+        sentiment_score: float,
+        confidence: float,
+        latest_price: float,
+        price_change_percent: float,
+    ):
+        """Persist a trading signal to the database.
+
+        Returns:
+            Persisted Signal ORM instance, or None on error.
+        """
         try:
             from database.models import Signal
+
             signal = Signal(
                 ticker=ticker,
                 signal_type=signal_type,
@@ -42,61 +98,94 @@ class DatabaseService:
                 sentiment_score=sentiment_score,
                 confidence=confidence,
                 latest_price=latest_price,
-                price_change_percent=price_change_percent
+                price_change_percent=price_change_percent,
             )
             db.add(signal)
             db.commit()
+            db.refresh(signal)
             return signal
-        except Exception as e:
+        except Exception:
             db.rollback()
-            print(f"Error saving signal: {e}")
+            logger.exception("Error saving signal for ticker %s", ticker)
             return None
 
     @staticmethod
-    def save_sentiment(db: Session, ticker: str, sentiment: str, confidence: float,
-                      positive_score: float, negative_score: float, neutral_score: float):
-        """Save sentiment to database"""
+    def save_sentiment(
+        db: Session,
+        ticker: str,
+        sentiment: str,
+        confidence: float,
+        positive_score: float,
+        negative_score: float,
+        neutral_score: float,
+    ):
+        """Persist a sentiment result to the database.
+
+        Returns:
+            Persisted Sentiment ORM instance, or None on error.
+        """
         try:
             from database.models import Sentiment
+
             sentiment_obj = Sentiment(
                 ticker=ticker,
                 sentiment=sentiment,
                 confidence=confidence,
                 positive_score=positive_score,
                 negative_score=negative_score,
-                neutral_score=neutral_score
+                neutral_score=neutral_score,
             )
             db.add(sentiment_obj)
             db.commit()
+            db.refresh(sentiment_obj)
             return sentiment_obj
-        except Exception as e:
+        except Exception:
             db.rollback()
-            print(f"Error saving sentiment: {e}")
+            logger.exception("Error saving sentiment for ticker %s", ticker)
             return None
 
     @staticmethod
-    def get_signal_history(db: Session, ticker: str, days: int = 30):
-        """Get signal history for a ticker"""
+    def get_signal_history(db: Session, ticker: str, days: int = 30) -> list:
+        """Return recent signals for a ticker ordered newest first.
+
+        Args:
+            db: Active database session.
+            ticker: Stock ticker symbol.
+            days: Number of calendar days to look back.
+
+        Returns:
+            List of Signal ORM instances.
+        """
         try:
             from database.models import Signal
-            from datetime import timedelta
+
             cutoff = datetime.utcnow() - timedelta(days=days)
-            return db.query(Signal).filter(
-                Signal.ticker == ticker,
-                Signal.created_at >= cutoff
-            ).order_by(Signal.created_at.desc()).all()
-        except Exception as e:
-            print(f"Error getting signal history: {e}")
+            return (
+                db.query(Signal)
+                .filter(Signal.ticker == ticker, Signal.created_at >= cutoff)
+                .order_by(Signal.created_at.desc())
+                .all()
+            )
+        except Exception:
+            logger.exception("Error getting signal history for ticker %s", ticker)
             return []
 
     @staticmethod
     def get_latest_signal(db: Session, ticker: str):
-        """Get latest signal for a ticker"""
+        """Return the most recent signal for a ticker.
+
+        Returns:
+            Latest Signal ORM instance, or None if not found.
+        """
         try:
             from database.models import Signal
-            return db.query(Signal).filter(
-                Signal.ticker == ticker
-            ).order_by(Signal.created_at.desc()).first()
-        except Exception as e:
-            print(f"Error getting latest signal: {e}")
+
+            return (
+                db.query(Signal)
+                .filter(Signal.ticker == ticker)
+                .order_by(Signal.created_at.desc())
+                .first()
+            )
+        except Exception:
+            logger.exception("Error getting latest signal for ticker %s", ticker)
             return None
