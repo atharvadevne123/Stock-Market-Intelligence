@@ -372,3 +372,23 @@ For **educational purposes only**. Not financial advice. Always do your own rese
 ## License
 
 MIT License
+
+---
+
+## Contributing
+
+We welcome contributions! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+```bash
+# Install pre-commit hooks
+pip install pre-commit
+pre-commit install
+
+# Run the full check suite
+make lint
+make test
+make type-check
+```
+
+See [CHANGELOG.md](CHANGELOG.md) for the project history.
+
