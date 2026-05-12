@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Column,
@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
     create_engine,
+    event,
 )
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -21,14 +22,23 @@ logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/stock_intelligence")
 
+_connect_args: dict = {}
+if "postgresql" in DATABASE_URL:
+    _connect_args = {"connect_timeout": 10}
+
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
     pool_size=5,
     max_overflow=10,
-    connect_args={"connect_timeout": 10} if "postgresql" in DATABASE_URL else {},
+    connect_args=_connect_args,
 )
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+
+def _utcnow() -> datetime:
+    """Return a timezone-aware UTC datetime."""
+    return datetime.now(tz=timezone.utc)
 
 
 class Base(DeclarativeBase):
@@ -50,7 +60,7 @@ class Article(Base):
     source = Column(String(100))
     url = Column(String(500), unique=True)
     published_date = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     def __repr__(self) -> str:
         return f"<Article(id={self.id}, ticker={self.ticker!r}, source={self.source!r})>"
@@ -73,7 +83,7 @@ class Signal(Base):
     confidence = Column(Float)
     latest_price = Column(Float)
     price_change_percent = Column(Float)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=_utcnow, index=True)
 
     def __repr__(self) -> str:
         return f"<Signal(id={self.id}, ticker={self.ticker!r}, type={self.signal_type!r})>"
@@ -94,7 +104,7 @@ class Sentiment(Base):
     positive_score = Column(Float)
     negative_score = Column(Float)
     neutral_score = Column(Float)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     def __repr__(self) -> str:
         return f"<Sentiment(id={self.id}, ticker={self.ticker!r}, sentiment={self.sentiment!r})>"
@@ -109,7 +119,7 @@ class Portfolio(Base):
     name = Column(String(100))
     description = Column(Text)
     tickers = Column(String(500))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     def __repr__(self) -> str:
         return f"<Portfolio(id={self.id}, name={self.name!r})>"
@@ -130,7 +140,7 @@ class BacktestResult(Base):
     win_rate = Column(Float)
     sharpe_ratio = Column(Float)
     trades_count = Column(Integer)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     def __repr__(self) -> str:
         return (
