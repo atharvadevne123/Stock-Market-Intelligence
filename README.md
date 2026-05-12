@@ -61,6 +61,42 @@ make docker-up
 
 ---
 
+
+---
+
+## Architecture
+
+```
+┌──────────────────────────────────────────────────────┐
+│                  FastAPI Backend (:8000)              │
+│  /analyze  /signals  /technical  /portfolio  /health  │
+└─────────────┬───────────────────────────┬────────────┘
+              │                           │
+    ┌─────────▼──────────┐   ┌────────────▼────────────┐
+    │  Main Orchestrator  │   │  ComprehensiveSignal     │
+    │  (main_orchestrator)│   │  Engine                  │
+    └──────┬──────────────┘   └─────────────────────────┘
+           │                          ▲
+    ┌──────▼──────┐  ┌────────┐       │
+    │  NewsAggreg │  │FinBERT │──────►│  TechnicalSignal
+    │  ator       │  │Analyze │       │  Generator
+    │  (scraper/) │  │(nlp/)  │       │  (analysis/)
+    └──────┬──────┘  └────────┘       │
+           │                          │ yfinance, pandas-ta
+    ┌──────▼──────┐                   │
+    │  RSS Feeds  │        ┌──────────▼────────┐
+    │  Yahoo Fin  │        │  PostgreSQL DB     │
+    │  Reddit     │        │  (SQLAlchemy ORM)  │
+    └─────────────┘        └───────────────────┘
+```
+
+### Signal Weights
+
+| Component | Default Weight |
+|-----------|---------------|
+| Technical Analysis | 70% |
+| Sentiment Analysis | 30% |
+
 ## How It Works
 
 ```
