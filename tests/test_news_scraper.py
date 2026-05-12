@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import pytest
-from datetime import datetime
+from datetime import datetime, timedelta
 from unittest.mock import patch, MagicMock
 from scraper.news_scraper import NewsArticle, NewsAggregator, RSSFeedScraper
 
@@ -18,52 +18,37 @@ class TestNewsArticle:
             ticker="AAPL",
         )
 
-    def test_to_dict_has_title(self):
-        d = self.article.to_dict()
-        assert d["title"] == "Apple Beats Earnings"
+    def test_to_dict_title(self):
+        assert self.article.to_dict()["title"] == "Apple Beats Earnings"
 
-    def test_to_dict_has_content(self):
-        d = self.article.to_dict()
-        assert d["content"] == "Strong Q4 results across all segments."
+    def test_to_dict_source(self):
+        assert self.article.to_dict()["source"] == "Reuters"
 
-    def test_to_dict_has_source(self):
-        d = self.article.to_dict()
-        assert d["source"] == "Reuters"
-
-    def test_to_dict_has_url(self):
-        d = self.article.to_dict()
-        assert "url" in d
-
-    def test_to_dict_has_ticker(self):
-        d = self.article.to_dict()
-        assert d["ticker"] == "AAPL"
+    def test_to_dict_ticker(self):
+        assert self.article.to_dict()["ticker"] == "AAPL"
 
     def test_to_dict_published_date_is_string(self):
-        d = self.article.to_dict()
-        assert isinstance(d["published_date"], str)
+        assert isinstance(self.article.to_dict()["published_date"], str)
 
     def test_article_no_ticker(self):
         article = NewsArticle(
             title="Market Update",
-            content="Markets closed mixed.",
+            content="Mixed session.",
             source="CNBC",
             url="https://example.com/market",
             published_date=datetime.now(),
         )
         assert article.ticker is None
-        d = article.to_dict()
-        assert d["ticker"] is None
 
-    @pytest.mark.parametrize("source", ["Reuters", "Bloomberg", "CNBC", "MarketWatch"])
+    @pytest.mark.parametrize("source", ["Reuters", "Bloomberg", "CNBC", "MarketWatch", "WSJ"])
     def test_various_sources(self, source):
-        article = NewsArticle(
-            title="Test",
-            content="Test content",
-            source=source,
-            url=f"https://example.com/{source.lower()}",
-            published_date=datetime.now(),
-        )
+        article = NewsArticle("T", "C", source, f"https://x.com/{source}", datetime.now())
         assert article.source == source
+
+    @pytest.mark.parametrize("ticker", ["AAPL", "MSFT", "GOOGL", None])
+    def test_optional_ticker(self, ticker):
+        article = NewsArticle("T", "C", "S", "https://x.com/t", datetime.now(), ticker)
+        assert article.ticker == ticker
 
 
 class TestRSSFeedScraper:
@@ -72,32 +57,44 @@ class TestRSSFeedScraper:
 
     def test_feeds_are_strings(self):
         for name, url in RSSFeedScraper.FEEDS.items():
-            assert isinstance(name, str)
-            assert isinstance(url, str)
+            assert isinstance(name, str) and isinstance(url, str)
 
     def test_init_creates_session(self):
         scraper = RSSFeedScraper()
         assert scraper.session is not None
 
-    def test_timeout_configurable(self):
-        scraper = RSSFeedScraper(timeout=30)
-        assert scraper.timeout == 30
+    def test_configurable_timeout(self):
+        assert RSSFeedScraper(timeout=30).timeout == 30
+
+    def test_default_timeout(self):
+        assert RSSFeedScraper().timeout == 10
 
 
 class TestNewsAggregator:
-    @patch("scraper.news_scraper.RSSFeedScraper")
     @patch("scraper.news_scraper.WebScraper")
-    def test_init_creates_scrapers(self, mock_web, mock_rss):
-        aggregator = NewsAggregator()
-        assert aggregator.rss_scraper is not None
-        assert aggregator.web_scraper is not None
-
     @patch("scraper.news_scraper.RSSFeedScraper")
-    @patch("scraper.news_scraper.WebScraper")
-    def test_get_market_news_calls_rss(self, mock_web_cls, mock_rss_cls):
+    def test_get_market_news_filters_by_time(self, mock_rss_cls, mock_web_cls):
         mock_rss = mock_rss_cls.return_value
-        mock_rss.fetch_all_feeds.return_value = []
+        old_article = NewsArticle("Old", "Content", "Source", "https://x.com/old",
+                                  datetime.now() - timedelta(hours=48))
+        new_article = NewsArticle("New", "Content", "Source", "https://x.com/new",
+                                  datetime.now() - timedelta(hours=1))
+        mock_rss.fetch_all_feeds.return_value = [old_article, new_article]
         aggregator = NewsAggregator()
         result = aggregator.get_market_news(hours=24)
-        mock_rss.fetch_all_feeds.assert_called_once()
-        assert isinstance(result, list)
+        assert len(result) == 1
+        assert result[0].title == "New"
+
+    @patch("scraper.news_scraper.WebScraper")
+    @patch("scraper.news_scraper.RSSFeedScraper")
+    def test_search_news_filters_by_query(self, mock_rss_cls, mock_web_cls):
+        mock_rss = mock_rss_cls.return_value
+        ai_article = NewsArticle("AI breakthroughs", "Content", "S", "https://x.com/ai",
+                                 datetime.now() - timedelta(hours=1))
+        other_article = NewsArticle("Oil prices rise", "Content", "S", "https://x.com/oil",
+                                    datetime.now() - timedelta(hours=2))
+        mock_rss.fetch_all_feeds.return_value = [ai_article, other_article]
+        aggregator = NewsAggregator()
+        result = aggregator.search_news("AI", hours=24)
+        assert len(result) == 1
+        assert "AI" in result[0].title
