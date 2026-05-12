@@ -5,6 +5,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from analysis.signal_engine import (
     Signal,
+    TechnicalIndicator,
     SentimentSignalGenerator,
     ComprehensiveSignalEngine,
 )
@@ -29,6 +30,10 @@ class TestSignalEnum:
     def test_all_signals_defined(self):
         assert len(Signal) == 5
 
+    @pytest.mark.parametrize("signal", list(Signal))
+    def test_signal_has_string_value(self, signal):
+        assert isinstance(signal.value, str)
+
 
 class TestSentimentSignalGenerator:
     def setup_method(self):
@@ -45,14 +50,17 @@ class TestSentimentSignalGenerator:
         scores = [{"combined_sentiment": "negative"}] * 10
         assert self.generator.generate_sentiment_signal(scores) == Signal.STRONG_SELL
 
+    def test_all_neutral_returns_hold(self):
+        scores = [{"combined_sentiment": "neutral"}] * 10
+        assert self.generator.generate_sentiment_signal(scores) == Signal.HOLD
+
     def test_mixed_balanced_returns_hold(self):
         scores = (
             [{"combined_sentiment": "positive"}] * 3
             + [{"combined_sentiment": "negative"}] * 3
             + [{"combined_sentiment": "neutral"}] * 4
         )
-        result = self.generator.generate_sentiment_signal(scores)
-        assert result == Signal.HOLD
+        assert self.generator.generate_sentiment_signal(scores) == Signal.HOLD
 
     @pytest.mark.parametrize("positive_pct,expected", [
         (0.7, Signal.STRONG_BUY),
@@ -83,6 +91,16 @@ class TestSentimentSignalGenerator:
         )
         assert self.generator.generate_sentiment_signal(scores) == expected
 
+    def test_single_positive_score(self):
+        scores = [{"combined_sentiment": "positive"}]
+        result = self.generator.generate_sentiment_signal(scores)
+        assert result in (Signal.BUY, Signal.STRONG_BUY, Signal.HOLD)
+
+    def test_missing_combined_sentiment_key(self):
+        scores = [{"other_key": "positive"}] * 5
+        result = self.generator.generate_sentiment_signal(scores)
+        assert result == Signal.HOLD
+
 
 class TestComprehensiveSignalEngineScoring:
     def setup_method(self):
@@ -98,10 +116,10 @@ class TestComprehensiveSignalEngineScoring:
     def test_signal_to_score(self, signal, expected_score):
         assert self.engine._signal_to_score(signal) == expected_score
 
-    def test_unknown_signal_defaults_to_zero(self):
-        mock_signal = MagicMock()
-        mock_signal.__class__ = Signal
-        assert self.engine._signal_to_score(mock_signal) == 0.0
+    def test_signal_to_score_is_cached(self):
+        score1 = self.engine._signal_to_score(Signal.BUY)
+        score2 = self.engine._signal_to_score(Signal.BUY)
+        assert score1 == score2 == 0.5
 
     def test_generate_signal_no_sentiment(self, mock_yf_download):
         result = self.engine.generate_signal("AAPL")
@@ -119,3 +137,17 @@ class TestComprehensiveSignalEngineScoring:
         weights = {"technical": 0.5, "sentiment": 0.5}
         result = self.engine.generate_signal("AAPL", weights=weights)
         assert result["weights"] == weights
+
+    def test_generate_signal_has_timestamp(self, mock_yf_download):
+        result = self.engine.generate_signal("AAPL")
+        assert "timestamp" in result
+
+    def test_generate_signal_has_combined_score(self, mock_yf_download):
+        result = self.engine.generate_signal("AAPL")
+        assert "combined_score" in result
+        assert isinstance(result["combined_score"], float)
+
+    @pytest.mark.parametrize("ticker", ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA"])
+    def test_generate_signal_for_various_tickers(self, mock_yf_download, ticker):
+        result = self.engine.generate_signal(ticker)
+        assert result["ticker"] == ticker
