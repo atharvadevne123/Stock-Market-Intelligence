@@ -11,6 +11,34 @@ A full-stack stock market intelligence platform that combines **FinBERT sentimen
 
 ---
 
+
+---
+
+## Quick Start
+
+```bash
+# 1. Clone and install
+git clone https://github.com/atharvadevne123/Stock-Market-Intelligence.git
+cd Stock-Market-Intelligence
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+
+# 2. Configure environment
+cp env.example .env
+# Edit .env with your API keys
+
+# 3. Start the API server
+make run
+# → http://localhost:8000
+# → http://localhost:8000/docs  (Swagger UI)
+
+# 4. Run tests
+make test
+
+# 5. Docker (optional)
+make docker-up
+```
+
 ## Screenshots
 
 ### Earth Pulse — Live Geopolitical Globe
