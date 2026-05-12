@@ -1,4 +1,25 @@
-"""Database package"""
-from .models import Base, engine, SessionLocal
+"""Database models and session management package."""
 
-__all__ = ['Base', 'engine', 'SessionLocal']
+from .models import (
+    Base,
+    Article,
+    BacktestResult,
+    Portfolio,
+    Sentiment,
+    Signal,
+    SessionLocal,
+    engine,
+    init_db,
+)
+
+__all__ = [
+    "Base",
+    "Article",
+    "BacktestResult",
+    "Portfolio",
+    "Sentiment",
+    "Signal",
+    "SessionLocal",
+    "engine",
+    "init_db",
+]
