@@ -40,7 +40,7 @@ jobs:
       - name: Install lightweight dependencies
         run: |
           pip install --upgrade pip
-          pip install fastapi uvicorn pydantic sqlalchemy pandas numpy httpx                       feedparser requests beautifulsoup4 lxml python-dotenv                       pytest pytest-cov ruff httpx
+          pip install fastapi uvicorn pydantic pydantic-settings sqlalchemy pandas numpy httpx                       feedparser requests beautifulsoup4 lxml python-dotenv                       pytest pytest-cov pytest-asyncio ruff httpx
 
       - name: Install pandas-ta-classic
         run: pip install pandas-ta-classic || true
@@ -48,9 +48,9 @@ jobs:
       - name: Install yfinance
         run: pip install yfinance || true
 
-      - name: Run tests (skip heavy ML tests)
+      - name: Run tests
         run: |
-          pytest tests/ -v --tb=short             --ignore=tests/test_sentiment.py             --cov=analysis --cov=api --cov=database --cov=scraper             --cov-report=term-missing             --cov-report=xml             -p no:warnings
+          pytest tests/ -v --tb=short -p no:warnings             --ignore=tests/test_sentiment.py             --cov=analysis --cov=api --cov=database --cov=scraper             --cov-report=term-missing             --cov-report=xml
         env:
           DATABASE_URL: sqlite:///./test.db
 
@@ -61,6 +61,14 @@ jobs:
           name: coverage-report
           path: coverage.xml
           retention-days: 14
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: matrix.python-version == '3.11'
+        with:
+          files: coverage.xml
+          fail_ci_if_error: false
+        continue-on-error: true
 
   type-check:
     runs-on: ubuntu-latest
@@ -77,6 +85,5 @@ jobs:
           pip install mypy fastapi pydantic sqlalchemy pandas numpy
 
       - name: Type check
-        run: |
-          mypy analysis/ api/ database/ --ignore-missing-imports --no-error-summary
+        run: mypy analysis/ api/ database/ --ignore-missing-imports --no-error-summary
         continue-on-error: true
