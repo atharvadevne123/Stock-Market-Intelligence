@@ -1,13 +1,15 @@
+"""News Scraper Module for Stock Market Intelligence.
+
+Combines multiple sources: RSS feeds, web scraping, Reddit, and news APIs.
 """
-News Scraper Module for Stock Market Intelligence
-Combines multiple sources: RSS feeds, web scraping, Reddit, news APIs
-"""
+from __future__ import annotations
+
 
 import feedparser
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+
 import logging
 import json
 from urllib.parse import quote
@@ -23,7 +25,7 @@ logger = logging.getLogger(__name__)
 class NewsArticle:
     """Data class for a news article"""
     def __init__(self, title: str, content: str, source: str, url: str, 
-                 published_date: datetime, ticker: Optional[str] = None):
+                 published_date: datetime, ticker: str | None = None):
         self.title = title
         self.content = content
         self.source = source
@@ -31,7 +33,7 @@ class NewsArticle:
         self.published_date = published_date
         self.ticker = ticker
         
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Convert to dictionary for storage/API"""
         return {
             'title': self.title,
@@ -96,7 +98,7 @@ class RSSFeedScraper:
             
         return articles
     
-    def fetch_all_feeds(self) -> List[NewsArticle]:
+    def fetch_all_feeds(self) -> list[NewsArticle]:
         """Fetch from all configured feeds"""
         all_articles = []
         for feed_name, feed_url in self.FEEDS.items():
@@ -118,7 +120,7 @@ class WebScraper:
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
     
-    def scrape_yahoo_finance(self, ticker: str) -> List[NewsArticle]:
+    def scrape_yahoo_finance(self, ticker: str) -> list[NewsArticle]:
         """Scrape news from Yahoo Finance for a specific ticker"""
         articles = []
         try:
@@ -157,7 +159,7 @@ class WebScraper:
         
         return articles
     
-    def scrape_earnings_call_transcripts(self, ticker: str) -> List[NewsArticle]:
+    def scrape_earnings_call_transcripts(self, ticker: str) -> list[NewsArticle]:
         """Scrape earnings call transcripts (example using Motley Fool RSS)"""
         articles = []
         try:
@@ -194,7 +196,7 @@ class NewsAggregator:
         self.rss_scraper = RSSFeedScraper()
         self.web_scraper = WebScraper()
         
-    def get_market_news(self, hours: int = 24) -> List[NewsArticle]:
+    def get_market_news(self, hours: int = 24) -> list[NewsArticle]:
         """Get recent market news from all sources"""
         logger.info(f"Aggregating market news from last {hours} hours...")
         
@@ -211,7 +213,7 @@ class NewsAggregator:
         logger.info(f"Found {len(filtered_articles)} articles from last {hours} hours")
         return filtered_articles
     
-    def get_ticker_news(self, ticker: str, hours: int = 24) -> List[NewsArticle]:
+    def get_ticker_news(self, ticker: str, hours: int = 24) -> list[NewsArticle]:
         """Get news specific to a ticker"""
         logger.info(f"Aggregating news for {ticker}...")
         
@@ -227,7 +229,7 @@ class NewsAggregator:
         logger.info(f"Found {len(articles)} articles for {ticker}")
         return articles
     
-    def search_news(self, query: str, hours: int = 24) -> List[NewsArticle]:
+    def search_news(self, query: str, hours: int = 24) -> list[NewsArticle]:
         """Search for news matching a query"""
         logger.info(f"Searching for news matching: {query}")
         
