@@ -232,6 +232,36 @@ npm run dev                  # → http://localhost:3000
 
 ---
 
+
+---
+
+## Testing
+
+```bash
+# Run all tests
+make test
+
+# Run with coverage report
+make coverage
+
+# Run a specific test module
+pytest tests/test_signal_engine.py -v
+
+# Run lint
+make lint
+```
+
+### Test Coverage
+
+| Module | Tests |
+|---|---|
+| `analysis/signal_engine.py` | Signal enum, SentimentSignalGenerator, ComprehensiveSignalEngine scoring |
+| `api/main.py` | /health, /, /api/analyze, /api/signals, /api/technical endpoints |
+| `scraper/news_scraper.py` | NewsArticle, RSSFeedScraper, NewsAggregator |
+| `nlp/sentiment_analyzer.py` | SentimentScore, NewsArticleSentimentAnalyzer |
+| `database/models.py` | Article, Signal, Sentiment, Portfolio, BacktestResult models |
+| `api/database.py` | DatabaseService CRUD operations |
+
 ## API Reference
 
 ```
