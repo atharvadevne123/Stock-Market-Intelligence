@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint with ruff
+        run: ruff check . --select E,F,W,I --ignore E501
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install lightweight dependencies
+        run: |
+          pip install --upgrade pip
+          pip install fastapi uvicorn pydantic sqlalchemy pandas numpy httpx                       feedparser requests beautifulsoup4 lxml python-dotenv                       pytest pytest-cov ruff httpx
+
+      - name: Install pandas-ta-classic
+        run: pip install pandas-ta-classic || true
+
+      - name: Install yfinance
+        run: pip install yfinance || true
+
+      - name: Run tests (skip heavy ML tests)
+        run: |
+          pytest tests/ -v --tb=short             --ignore=tests/test_sentiment.py             --cov=analysis --cov=api --cov=database --cov=scraper             --cov-report=term-missing             --cov-report=xml             -p no:warnings
+        env:
+          DATABASE_URL: sqlite:///./test.db
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.11'
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 14
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install mypy
+        run: |
+          pip install mypy fastapi pydantic sqlalchemy pandas numpy
+
+      - name: Type check
+        run: |
+          mypy analysis/ api/ database/ --ignore-missing-imports --no-error-summary
+        continue-on-error: true
