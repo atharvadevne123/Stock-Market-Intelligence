@@ -8,34 +8,42 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ### Added
-- Comprehensive test suite covering signal engine, API, database, scraper, and sentiment
-- GitHub Actions CI workflow with lint, test, and type-check jobs
-- Makefile with `install`, `test`, `coverage`, `lint`, `format`, `run`, `docker-build` targets
-- CONTRIBUTING.md with development workflow guidelines
-- Dockerfile and docker-compose.yml for containerised deployment
-- `.pre-commit-config.yaml` with ruff and trailing-whitespace hooks
-- Type annotations across all core modules
-- Google-style docstrings for all public classes and functions
-- Structured logging replacing `print()` calls in `api/database.py` and `database/models.py`
-- `/api/version` and `/api/metrics` endpoints
-- Correlation ID middleware for request tracing
-- `functools.lru_cache` on `_signal_to_score` for efficiency
-- `get_db` FastAPI dependency for database session management
-- Database indexes on `ticker` and `created_at` columns
-- Input validation and improved error handling throughout
-- `.env.example` with all required environment variables documented
-- `pyproject.toml` now includes `[tool.ruff]`, `[tool.pytest.ini_options]`, and `[tool.mypy]`
+- **Test suite** — 60+ tests across signal engine, API, database, scraper, sentiment, and integration
+- **GitHub Actions CI** — lint, test (3.10/3.11/3.12), type-check, and Codecov upload
+- **Makefile** — `install`, `install-dev`, `test`, `coverage`, `lint`, `format`, `audit`, `run`, `run-prod`, `docker-build`, `docker-up`
+- **CONTRIBUTING.md** — development workflow, commit conventions, PR process
+- **Dockerfile** — multi-stage build with health check
+- **docker-compose.yml** — API + PostgreSQL with health checks
+- **`.pre-commit-config.yaml`** — ruff, mypy, and whitespace hooks
+- **`/api/version`** endpoint — returns version, Python info, uptime
+- **`/api/metrics`** endpoint — request and error counters
+- **Correlation ID middleware** — attaches `X-Correlation-ID` to all responses
+- **Lifespan handler** — replaces deprecated `@app.on_event("startup")`
+- **`get_db` dependency** — proper FastAPI session lifecycle management
+- **`get_signal_count`** and **`get_recent_articles`** — new DatabaseService methods
+- **`PeriodicTask` scheduler** — thread-safe background task runner in `scheduler/__init__.py`
+- **`functools.lru_cache`** on `_signal_to_score` for O(1) repeated calls
+- **UTC-aware datetimes** — replaced `datetime.utcnow()` with `datetime.now(tz=timezone.utc)`
+- **Composite database indexes** — `(ticker, published_date)`, `(ticker, created_at)` for fast queries
+- **`__repr__` methods** on all ORM models
+- **`env.example`** fully documented with all configuration options
+
+### Changed
+- `database/models.py` — migrated from deprecated `declarative_base()` to `DeclarativeBase`
+- `api/database.py` — all `print()` calls replaced with structured logging
+- `analysis/signal_engine.py` — `from __future__ import annotations`, modern type hints throughout
+- `nlp/sentiment_analyzer.py` — lazy-imported heavy deps (torch, transformers) inside methods
+- `main_orchestrator.py` — graceful per-article error handling in sentiment pipeline
+- `debug_sentiment.py` — converted to proper CLI with `argparse`
+- `quick_start.py` — added full type annotations
+- `requirements.txt` — added `cffi`, `httpx`, `pytest-asyncio`, `pre-commit`
+- `pyproject.toml` — added `[tool.ruff]`, `[tool.pytest.ini_options]`, `[tool.mypy]`, `[tool.coverage]`
+
+### Fixed
+- `api/main.py` — removed deprecated `@app.on_event` lifecycle hooks
 
 ## [1.0.0] - 2024-11-01
 
 ### Added
-- Initial release
-- FinBERT sentiment analysis of financial news articles
-- Technical indicator signal engine (RSI, MACD, Bollinger Bands, Moving Averages)
-- FastAPI backend with `/analyze`, `/signals`, `/technical`, `/portfolio`, `/health` endpoints
-- RSS feed scraper and Yahoo Finance web scraper
-- SQLAlchemy models for Articles, Signals, Sentiments, Portfolios, and Backtest Results
-- Main orchestrator combining all components
-- Frontend Vue.js globe visualization
-- Docker support
-- Alembic migrations
+- Initial release with FinBERT sentiment analysis, technical indicators, FastAPI backend,
+  RSS/Yahoo/Reddit news scraping, SQLAlchemy models, Vue.js globe visualization, and Docker support
