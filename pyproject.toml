@@ -30,13 +30,16 @@ ignore = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --tb=short"
+addopts = "-v --tb=short -p no:warnings"
 asyncio_mode = "auto"
 
 [tool.mypy]
 ignore_missing_imports = true
 no_error_summary = true
 python_version = "3.11"
+strict = false
+warn_return_any = true
+warn_unused_ignores = true
 
 [tool.coverage.run]
 source = ["analysis", "api", "database", "scraper", "nlp"]
@@ -45,3 +48,8 @@ omit = ["tests/*", "*/migrations/*", "*/__pycache__/*"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
+exclude_lines = [
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "\.\.\.",
+]
