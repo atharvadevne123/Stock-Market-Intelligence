@@ -262,8 +262,28 @@ make lint
 | `database/models.py` | Article, Signal, Sentiment, Portfolio, BacktestResult models |
 | `api/database.py` | DatabaseService CRUD operations |
 
+---
+
 ## API Reference
 
+Base URL: `http://localhost:8000`
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/` | Service banner and status |
+| `GET` | `/health` | Health check |
+| `GET` | `/api/version` | Version, Python info, uptime |
+| `GET` | `/api/metrics` | Request and error counters |
+| `GET` | `/api/analyze/{ticker}` | Full pipeline: news → sentiment → signal |
+| `GET` | `/api/signals/{ticker}` | Combined technical + sentiment signal |
+| `GET` | `/api/technical/{ticker}` | Raw technical indicator values |
+| `GET` | `/api/portfolio?tickers=AAPL,MSFT` | Portfolio-wide analysis |
+| `GET` | `/api/market/overview` | Global market sentiment summary |
+
+Interactive docs available at `/docs` (Swagger UI) and `/redoc`.
+
+
+<!-- legacy -->
 ```
 GET  /api/signals/{ticker}              BUY/SELL/HOLD + confidence %
 GET  /api/signals/portfolio             Multi-ticker portfolio analysis
