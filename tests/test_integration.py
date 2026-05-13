@@ -1,9 +1,9 @@
 """Integration tests combining multiple Stock Market Intelligence components."""
 from __future__ import annotations
 
-import pytest
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+
+import pytest
 
 
 class TestSignalPipelineIntegration:
@@ -23,7 +23,7 @@ class TestSignalPipelineIntegration:
 
     def test_weights_sum_to_one(self):
         from analysis.signal_engine import ComprehensiveSignalEngine
-        engine = ComprehensiveSignalEngine()
+        ComprehensiveSignalEngine()  # verify import succeeds
         weights = {"technical": 0.7, "sentiment": 0.3}
         assert abs(sum(weights.values()) - 1.0) < 1e-9
 
@@ -48,7 +48,7 @@ class TestSignalPipelineIntegration:
         (0.5, 0.5, 0),   # balanced → zero
     ])
     def test_signal_scoring(self, buy_pct, sell_pct, expected_sign):
-        from analysis.signal_engine import Signal, ComprehensiveSignalEngine
+        from analysis.signal_engine import ComprehensiveSignalEngine
         engine = ComprehensiveSignalEngine()
         total = 10
         pos = int(total * buy_pct)
@@ -75,6 +75,7 @@ class TestDatabaseArticlePipeline:
     def db(self):
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
+
         from database.models import Base
         engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(engine)
