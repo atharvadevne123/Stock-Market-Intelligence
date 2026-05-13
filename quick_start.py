@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import logging
 import sys
-from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,8 +47,7 @@ def check_environment() -> list[str]:
 
 def demo_news_scraper() -> None:
     """Demonstrate the news scraper with a sample ticker."""
-    print("
-" + "=" * 80)
+    print("=" * 80)
     print("DEMO: NEWS SCRAPER")
     print("=" * 80)
     try:
@@ -66,8 +64,7 @@ def demo_news_scraper() -> None:
 
 def demo_technical_analysis() -> None:
     """Demonstrate the technical signal engine."""
-    print("
-" + "=" * 80)
+    print("=" * 80)
     print("DEMO: TECHNICAL ANALYSIS")
     print("=" * 80)
     try:
