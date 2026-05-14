@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import patch, MagicMock
+
 from analysis.signal_engine import (
-    Signal,
-    TechnicalIndicator,
-    SentimentSignalGenerator,
     ComprehensiveSignalEngine,
+    SentimentSignalGenerator,
+    Signal,
 )
 
 

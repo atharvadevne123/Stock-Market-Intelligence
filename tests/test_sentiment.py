@@ -1,9 +1,7 @@
 """Tests for nlp.sentiment_analyzer module."""
 from __future__ import annotations
 
-import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime
+from unittest.mock import MagicMock, patch
 
 
 class TestSentimentScore:

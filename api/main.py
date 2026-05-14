@@ -32,7 +32,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         from analysis.signal_engine import ComprehensiveSignalEngine
         from main_orchestrator import StockMarketIntelligence
-        from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer
         from scraper.news_scraper import NewsAggregator  # noqa: F401 – validates import
 
         system = StockMarketIntelligence()

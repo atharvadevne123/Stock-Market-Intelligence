@@ -1,18 +1,19 @@
 """Tests for database.models SQLAlchemy models."""
 from __future__ import annotations
 
-import pytest
 from datetime import datetime
+
+import pytest
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import sessionmaker
+
 from database.models import (
-    Base,
     Article,
-    Signal,
-    Sentiment,
-    Portfolio,
     BacktestResult,
-    init_db,
+    Base,
+    Portfolio,
+    Sentiment,
+    Signal,
 )
 
 

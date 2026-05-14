@@ -1,10 +1,12 @@
 """Tests for scraper.news_scraper module."""
 from __future__ import annotations
 
-import pytest
 from datetime import datetime, timedelta
-from unittest.mock import patch, MagicMock
-from scraper.news_scraper import NewsArticle, NewsAggregator, RSSFeedScraper
+from unittest.mock import patch
+
+import pytest
+
+from scraper.news_scraper import NewsAggregator, NewsArticle, RSSFeedScraper
 
 
 class TestNewsArticle:

@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from .signal_engine import (
     ComprehensiveSignalEngine,
-    Signal,
     SentimentSignalGenerator,
+    Signal,
     TechnicalIndicator,
     TechnicalSignalGenerator,
 )

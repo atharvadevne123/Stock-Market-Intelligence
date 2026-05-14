@@ -1,8 +1,9 @@
 """Tests for main_orchestrator module."""
 from __future__ import annotations
 
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 
 @pytest.fixture

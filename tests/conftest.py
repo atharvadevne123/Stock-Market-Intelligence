@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -114,6 +114,7 @@ def sqlite_session():
     """Yield an in-memory SQLite session with all tables created."""
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
+
     from database.models import Base
 
     engine = create_engine("sqlite:///:memory:")
