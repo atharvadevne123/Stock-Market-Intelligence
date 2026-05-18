@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
     create_engine,
+    pool,
 )
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
@@ -21,17 +22,24 @@ logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/stock_intelligence")
 
-_connect_args: dict = {}
-if "postgresql" in DATABASE_URL:
-    _connect_args = {"connect_timeout": 10}
 
-engine = create_engine(
-    DATABASE_URL,
-    pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
-    connect_args=_connect_args,
-)
+def _make_engine(url: str):
+    """Create a SQLAlchemy engine with appropriate settings for the dialect."""
+    if url.startswith("sqlite"):
+        return create_engine(url, connect_args={"check_same_thread": False})
+    connect_args: dict = {}
+    if "postgresql" in url:
+        connect_args = {"connect_timeout": 10}
+    return create_engine(
+        url,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+        connect_args=connect_args,
+    )
+
+
+engine = _make_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
