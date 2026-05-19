@@ -14,7 +14,6 @@ from sqlalchemy import (
     String,
     Text,
     create_engine,
-    pool,
 )
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
