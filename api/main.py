@@ -14,6 +14,27 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
+# Module-level imports allow test patching; failures are deferred to startup.
+try:
+    from analysis.signal_engine import ComprehensiveSignalEngine
+except Exception:  # pragma: no cover
+    ComprehensiveSignalEngine = None  # type: ignore[assignment,misc]
+
+try:
+    from main_orchestrator import StockMarketIntelligence
+except Exception:  # pragma: no cover
+    StockMarketIntelligence = None  # type: ignore[assignment,misc]
+
+try:
+    from scraper.news_scraper import NewsAggregator
+except Exception:  # pragma: no cover
+    NewsAggregator = None  # type: ignore[assignment,misc]
+
+try:
+    from analysis.sentiment_analyzer import NewsArticleSentimentAnalyzer
+except Exception:  # pragma: no cover
+    NewsArticleSentimentAnalyzer = None  # type: ignore[assignment,misc]
+
 # ---------------------------------------------------------------------------
 # Globals populated during lifespan startup
 # ---------------------------------------------------------------------------
@@ -30,10 +51,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     global system, signal_engine
     logger.info("Starting Stock Market Intelligence API…")
     try:
-        from analysis.signal_engine import ComprehensiveSignalEngine
-        from main_orchestrator import StockMarketIntelligence
-        from scraper.news_scraper import NewsAggregator  # noqa: F401 – validates import
-
         system = StockMarketIntelligence()
         signal_engine = ComprehensiveSignalEngine()
         logger.info("System ready")

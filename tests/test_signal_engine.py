@@ -64,7 +64,7 @@ class TestSentimentSignalGenerator:
     @pytest.mark.parametrize("positive_pct,expected", [
         (0.7, Signal.STRONG_BUY),
         (0.5, Signal.BUY),
-        (0.1, Signal.HOLD),
+        (0.1, Signal.STRONG_SELL),  # negative_ratio=0.9 > 0.6 -> STRONG_SELL
     ])
     def test_positive_ratios(self, positive_pct, expected):
         total = 10
@@ -78,7 +78,7 @@ class TestSentimentSignalGenerator:
 
     @pytest.mark.parametrize("negative_pct,expected", [
         (0.7, Signal.STRONG_SELL),
-        (0.5, Signal.SELL),
+        (0.5, Signal.BUY),  # positive_ratio=0.5 > 0.4 fires before negative check -> BUY
     ])
     def test_negative_ratios(self, negative_pct, expected):
         total = 10

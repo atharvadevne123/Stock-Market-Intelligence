@@ -7,7 +7,10 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta
 
-import feedparser
+try:
+    import feedparser
+except ImportError:  # pragma: no cover
+    feedparser = None  # type: ignore[assignment]
 import requests
 from bs4 import BeautifulSoup
 

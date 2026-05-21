@@ -6,6 +6,21 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+try:
+    from analysis.signal_engine import ComprehensiveSignalEngine
+except Exception:  # pragma: no cover
+    ComprehensiveSignalEngine = None  # type: ignore[assignment,misc]
+
+try:
+    from scraper.news_scraper import NewsAggregator
+except Exception:  # pragma: no cover
+    NewsAggregator = None  # type: ignore[assignment,misc]
+
+try:
+    from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer
+except Exception:  # pragma: no cover
+    NewsArticleSentimentAnalyzer = None  # type: ignore[assignment,misc]
+
 
 class StockMarketIntelligence:
     """Top-level orchestrator that wires together the full analysis pipeline."""
@@ -13,10 +28,6 @@ class StockMarketIntelligence:
     def __init__(self) -> None:
         """Initialise all pipeline components."""
         logger.info("Initialising Stock Market Intelligence System…")
-        from analysis.signal_engine import ComprehensiveSignalEngine
-        from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer
-        from scraper.news_scraper import NewsAggregator
-
         self.news_aggregator = NewsAggregator()
         self.sentiment_analyzer = NewsArticleSentimentAnalyzer()
         self.signal_engine = ComprehensiveSignalEngine()
