@@ -39,7 +39,7 @@ python-dateutil==2.9.0.post0
 
 # Utilities
 click==8.1.8
-cffi>=1.15,<2
+cffi>=2.0.0,<3
 
 # Development & Testing
 pytest>=7.4,<9
