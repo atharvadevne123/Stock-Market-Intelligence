@@ -5,7 +5,7 @@ requests==2.32.5
 # Web Scraping & Parsing
 beautifulsoup4==4.12.2
 feedparser==6.0.12
-lxml==4.9.3
+lxml==6.1.1
 selenium==4.36.0
 
 # Reddit API (PRAW)
