@@ -1,4 +1,5 @@
 """Scheduler package for periodic analysis tasks."""
+
 from __future__ import annotations
 
 import logging

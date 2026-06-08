@@ -4,6 +4,7 @@ Provides FinBERT-based financial sentiment scoring via the
 NewsArticleSentimentAnalyzer class, which handles title/body
 weighting and aggregation across multiple articles.
 """
+
 from __future__ import annotations
 
 from .sentiment_analyzer import (

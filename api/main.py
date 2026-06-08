@@ -1,4 +1,5 @@
 """FastAPI application for the Stock Market Intelligence platform."""
+
 from __future__ import annotations
 
 import logging

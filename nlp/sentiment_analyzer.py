@@ -2,6 +2,7 @@
 
 Uses HuggingFace ProsusAI/finbert for financial sentiment scoring.
 """
+
 from __future__ import annotations
 
 import logging
@@ -123,16 +124,13 @@ class FinBERTSentimentAnalyzer:
             confidence: float = prediction["score"]
 
             with torch.no_grad():
-                inputs = self.tokenizer(
-                    text, return_tensors="pt", truncation=True, max_length=512
-                ).to(self.model.device)
+                inputs = self.tokenizer(text, return_tensors="pt", truncation=True, max_length=512).to(
+                    self.model.device
+                )
                 logits = self.model(**inputs).logits
                 probs = torch.softmax(logits, dim=-1)[0]
 
-            scores = {
-                self.id2label[i]: float(probs[i].item())
-                for i in range(len(self.id2label))
-            }
+            scores = {self.id2label[i]: float(probs[i].item()) for i in range(len(self.id2label))}
 
             logger.debug("Sentiment: %s (%.2f%%)", sentiment, confidence * 100)
             return SentimentScore(

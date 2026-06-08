@@ -1,4 +1,5 @@
 """Tests for main_orchestrator module."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -44,6 +45,7 @@ def orchestrator(mock_news, mock_sentiment, mock_signals):
         patch("main_orchestrator.ComprehensiveSignalEngine", return_value=mock_signals),
     ):
         from main_orchestrator import StockMarketIntelligence
+
         orch = StockMarketIntelligence()
         orch.news_aggregator = mock_news
         orch.sentiment_analyzer = mock_sentiment

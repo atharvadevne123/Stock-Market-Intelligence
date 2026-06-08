@@ -1,4 +1,5 @@
 """Signal engine combining technical indicators and sentiment for BUY/SELL/HOLD signals."""
+
 from __future__ import annotations
 
 import logging
@@ -171,14 +172,8 @@ class TechnicalSignalGenerator:
             ma_signal, ma_data = self.analyze_moving_averages(prices)
             bb_signal, bb_data = self.analyze_bollinger_bands(prices)
 
-            buy_count = sum(
-                1 for s in [rsi_signal, macd_signal, ma_signal, bb_signal]
-                if s == Signal.BUY
-            )
-            sell_count = sum(
-                1 for s in [rsi_signal, macd_signal, ma_signal, bb_signal]
-                if s == Signal.SELL
-            )
+            buy_count = sum(1 for s in [rsi_signal, macd_signal, ma_signal, bb_signal] if s == Signal.BUY)
+            sell_count = sum(1 for s in [rsi_signal, macd_signal, ma_signal, bb_signal] if s == Signal.SELL)
 
             if buy_count >= 3:
                 overall = Signal.STRONG_BUY
@@ -240,12 +235,8 @@ class SentimentSignalGenerator:
             return Signal.HOLD
 
         total = len(sentiment_scores)
-        positive_count = sum(
-            1 for s in sentiment_scores if s.get("combined_sentiment") == "positive"
-        )
-        negative_count = sum(
-            1 for s in sentiment_scores if s.get("combined_sentiment") == "negative"
-        )
+        positive_count = sum(1 for s in sentiment_scores if s.get("combined_sentiment") == "positive")
+        negative_count = sum(1 for s in sentiment_scores if s.get("combined_sentiment") == "negative")
 
         positive_ratio = positive_count / total
         negative_ratio = negative_count / total
@@ -296,15 +287,10 @@ class ComprehensiveSignalEngine:
         sentiment_signal = Signal.HOLD
         sentiment_score = 0.0
         if sentiment_scores:
-            sentiment_signal = self.sentiment_generator.generate_sentiment_signal(
-                sentiment_scores
-            )
+            sentiment_signal = self.sentiment_generator.generate_sentiment_signal(sentiment_scores)
             sentiment_score = self._signal_to_score(sentiment_signal)
 
-        combined_score = (
-            technical_score * weights["technical"]
-            + sentiment_score * weights["sentiment"]
-        )
+        combined_score = technical_score * weights["technical"] + sentiment_score * weights["sentiment"]
 
         if combined_score > 0.8:
             final_signal = Signal.STRONG_BUY

@@ -2,6 +2,7 @@
 
 Combines multiple sources: RSS feeds, web scraping, Reddit, and news APIs.
 """
+
 from __future__ import annotations
 
 import logging
@@ -15,17 +16,16 @@ import requests
 from bs4 import BeautifulSoup
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 class NewsArticle:
     """Data class for a news article"""
-    def __init__(self, title: str, content: str, source: str, url: str,
-                 published_date: datetime, ticker: str | None = None):
+
+    def __init__(
+        self, title: str, content: str, source: str, url: str, published_date: datetime, ticker: str | None = None
+    ):
         self.title = title
         self.content = content
         self.source = source
@@ -36,12 +36,12 @@ class NewsArticle:
     def to_dict(self) -> dict:
         """Convert to dictionary for storage/API"""
         return {
-            'title': self.title,
-            'content': self.content,
-            'source': self.source,
-            'url': self.url,
-            'published_date': self.published_date.isoformat(),
-            'ticker': self.ticker
+            "title": self.title,
+            "content": self.content,
+            "source": self.source,
+            "url": self.url,
+            "published_date": self.published_date.isoformat(),
+            "ticker": self.ticker,
         }
 
 
@@ -50,11 +50,11 @@ class RSSFeedScraper:
 
     # Popular financial RSS feeds
     FEEDS = {
-        'cnbc': 'https://feeds.cnbc.com/cnbcnews/rss.html',
-        'reuters': 'https://feeds.reuters.com/reuters/businessNews',
-        'bloomberg': 'https://feeds.bloomberg.com/markets/news.rss',
-        'seeking_alpha': 'https://seekingalpha.com/feed.xml',
-        'market_watch': 'https://feeds.marketwatch.com/marketwatch/topstories/',
+        "cnbc": "https://feeds.cnbc.com/cnbcnews/rss.html",
+        "reuters": "https://feeds.reuters.com/reuters/businessNews",
+        "bloomberg": "https://feeds.bloomberg.com/markets/news.rss",
+        "seeking_alpha": "https://seekingalpha.com/feed.xml",
+        "market_watch": "https://feeds.marketwatch.com/marketwatch/topstories/",
     }
 
     def __init__(self, timeout: int = 10):
@@ -70,21 +70,17 @@ class RSSFeedScraper:
 
             for entry in feed.entries[:10]:  # Get latest 10 articles
                 try:
-                    title = entry.get('title', 'No title')
-                    content = entry.get('summary', '')[:500]  # Truncate
-                    url = entry.get('link', '')
+                    title = entry.get("title", "No title")
+                    content = entry.get("summary", "")[:500]  # Truncate
+                    url = entry.get("link", "")
 
                     # Parse published date
                     pub_date = datetime.now()
-                    if hasattr(entry, 'published_parsed') and entry.published_parsed:
+                    if hasattr(entry, "published_parsed") and entry.published_parsed:
                         pub_date = datetime(*entry.published_parsed[:6])
 
                     article = NewsArticle(
-                        title=title,
-                        content=content,
-                        source=feed_name,
-                        url=url,
-                        published_date=pub_date
+                        title=title, content=content, source=feed_name, url=url, published_date=pub_date
                     )
                     articles.append(article)
 
@@ -115,9 +111,7 @@ class WebScraper:
     def __init__(self, timeout: int = 10):
         self.timeout = timeout
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        })
+        self.session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"})
 
     def scrape_yahoo_finance(self, ticker: str) -> list[NewsArticle]:
         """Scrape news from Yahoo Finance for a specific ticker"""
@@ -129,25 +123,25 @@ class WebScraper:
             response = self.session.get(url, timeout=self.timeout)
             response.raise_for_status()
 
-            soup = BeautifulSoup(response.content, 'html.parser')
+            soup = BeautifulSoup(response.content, "html.parser")
 
             # Note: Yahoo Finance uses JavaScript rendering, so this is limited
             # For production, consider using Selenium for JS-heavy sites
-            news_items = soup.find_all('a', {'data-test': 'quoteNewsLink'})
+            news_items = soup.find_all("a", {"data-test": "quoteNewsLink"})
 
             for item in news_items[:5]:
                 try:
                     title = item.get_text(strip=True)
-                    href = item.get('href', '')
+                    href = item.get("href", "")
 
                     if title and href:
                         article = NewsArticle(
                             title=title,
                             content=f"News from Yahoo Finance for {ticker}",
-                            source='yahoo_finance',
-                            url=f"https://finance.yahoo.com{href}" if not href.startswith('http') else href,
+                            source="yahoo_finance",
+                            url=f"https://finance.yahoo.com{href}" if not href.startswith("http") else href,
                             published_date=datetime.now(),
-                            ticker=ticker
+                            ticker=ticker,
                         )
                         articles.append(article)
                 except Exception as e:
@@ -169,14 +163,14 @@ class WebScraper:
             feed = feedparser.parse(url)
             for entry in feed.entries[:3]:
                 try:
-                    if 'earnings' in entry.get('title', '').lower():
+                    if "earnings" in entry.get("title", "").lower():
                         article = NewsArticle(
-                            title=entry.get('title', ''),
-                            content=entry.get('summary', '')[:500],
-                            source='earnings_transcripts',
-                            url=entry.get('link', ''),
+                            title=entry.get("title", ""),
+                            content=entry.get("summary", "")[:500],
+                            source="earnings_transcripts",
+                            url=entry.get("link", ""),
                             published_date=datetime.now(),
-                            ticker=ticker
+                            ticker=ticker,
                         )
                         articles.append(article)
                 except Exception as e:
@@ -204,10 +198,7 @@ class NewsAggregator:
 
         # Filter by time
         cutoff_time = datetime.now() - timedelta(hours=hours)
-        filtered_articles = [
-            article for article in rss_articles
-            if article.published_date >= cutoff_time
-        ]
+        filtered_articles = [article for article in rss_articles if article.published_date >= cutoff_time]
 
         logger.info(f"Found {len(filtered_articles)} articles from last {hours} hours")
         return filtered_articles
@@ -238,9 +229,9 @@ class NewsAggregator:
         # Filter by query
         query_lower = query.lower()
         filtered = [
-            article for article in all_news
-            if query_lower in article.title.lower() or
-               query_lower in article.content.lower()
+            article
+            for article in all_news
+            if query_lower in article.title.lower() or query_lower in article.content.lower()
         ]
 
         logger.info(f"Found {len(filtered)} articles matching '{query}'")

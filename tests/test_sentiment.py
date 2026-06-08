@@ -1,4 +1,5 @@
 """Tests for nlp.sentiment_analyzer module."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -10,6 +11,7 @@ class TestSentimentScore:
     @patch("transformers.pipeline")
     def test_to_dict_keys(self, mock_pipeline, mock_model, mock_tokenizer):
         from nlp.sentiment_analyzer import SentimentScore
+
         score = SentimentScore(
             text="Apple stock rose 5%",
             sentiment="positive",
@@ -28,6 +30,7 @@ class TestSentimentScore:
     @patch("transformers.pipeline")
     def test_sentiment_values(self, mock_pipeline, mock_model, mock_tokenizer):
         from nlp.sentiment_analyzer import SentimentScore
+
         for sentiment in ("positive", "negative", "neutral"):
             score = SentimentScore(
                 text="Test",
@@ -42,6 +45,7 @@ class TestSentimentScore:
     @patch("transformers.pipeline")
     def test_repr(self, mock_pipeline, mock_model, mock_tokenizer):
         from nlp.sentiment_analyzer import SentimentScore
+
         score = SentimentScore("x", "positive", 0.95, {})
         repr_str = repr(score)
         assert "SentimentScore" in repr_str
@@ -58,11 +62,14 @@ class TestNewsArticleSentimentAnalyzer:
         mock_pipeline.return_value = mock_pipe
 
         from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer, SentimentScore
+
         analyzer = NewsArticleSentimentAnalyzer()
         analyzer.analyzer = MagicMock()
         analyzer.analyzer.analyze_sentiment.return_value = SentimentScore(
-            text="test", sentiment="positive", confidence=0.9,
-            scores={"positive": 0.9, "negative": 0.05, "neutral": 0.05}
+            text="test",
+            sentiment="positive",
+            confidence=0.9,
+            scores={"positive": 0.9, "negative": 0.05, "neutral": 0.05},
         )
         result = analyzer.analyze_article("Great earnings", "Strong results reported.")
         assert "combined_sentiment" in result
@@ -77,11 +84,14 @@ class TestNewsArticleSentimentAnalyzer:
         mock_pipeline.return_value = mock_pipe
 
         from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer, SentimentScore
+
         analyzer = NewsArticleSentimentAnalyzer()
         analyzer.analyzer = MagicMock()
         analyzer.analyzer.analyze_sentiment.return_value = SentimentScore(
-            text="test", sentiment="positive", confidence=0.9,
-            scores={"positive": 0.9, "negative": 0.05, "neutral": 0.05}
+            text="test",
+            sentiment="positive",
+            confidence=0.9,
+            scores={"positive": 0.9, "negative": 0.05, "neutral": 0.05},
         )
         result = analyzer.analyze_article("test title", "test content")
         assert result["combined_sentiment"] in ("positive", "negative", "neutral")

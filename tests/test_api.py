@@ -1,4 +1,5 @@
 """Tests for api.main FastAPI application."""
+
 from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
@@ -48,6 +49,7 @@ def client(mock_system, mock_signal_engine):
         patch("api.main.NewsArticleSentimentAnalyzer", return_value=MagicMock()),
     ):
         from api.main import app
+
         with TestClient(app) as c:
             yield c
 

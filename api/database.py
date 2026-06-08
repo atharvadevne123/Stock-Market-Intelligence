@@ -1,4 +1,5 @@
 """Database service layer and FastAPI dependency for Stock Market Intelligence."""
+
 from __future__ import annotations
 
 import logging
@@ -35,8 +36,12 @@ class DatabaseService:
             from database.models import Article
 
             article = Article(
-                ticker=ticker, title=title, content=content, source=source,
-                url=url, published_date=_utcnow(),
+                ticker=ticker,
+                title=title,
+                content=content,
+                source=source,
+                url=url,
+                published_date=_utcnow(),
             )
             db.add(article)
             db.commit()
@@ -64,9 +69,13 @@ class DatabaseService:
             from database.models import Signal
 
             signal = Signal(
-                ticker=ticker, signal_type=signal_type, combined_score=combined_score,
-                technical_score=technical_score, sentiment_score=sentiment_score,
-                confidence=confidence, latest_price=latest_price,
+                ticker=ticker,
+                signal_type=signal_type,
+                combined_score=combined_score,
+                technical_score=technical_score,
+                sentiment_score=sentiment_score,
+                confidence=confidence,
+                latest_price=latest_price,
                 price_change_percent=price_change_percent,
             )
             db.add(signal)
@@ -93,8 +102,11 @@ class DatabaseService:
             from database.models import Sentiment
 
             sentiment_obj = Sentiment(
-                ticker=ticker, sentiment=sentiment, confidence=confidence,
-                positive_score=positive_score, negative_score=negative_score,
+                ticker=ticker,
+                sentiment=sentiment,
+                confidence=confidence,
+                positive_score=positive_score,
+                negative_score=negative_score,
                 neutral_score=neutral_score,
             )
             db.add(sentiment_obj)
@@ -129,12 +141,7 @@ class DatabaseService:
         try:
             from database.models import Signal
 
-            return (
-                db.query(Signal)
-                .filter(Signal.ticker == ticker)
-                .order_by(Signal.created_at.desc())
-                .first()
-            )
+            return db.query(Signal).filter(Signal.ticker == ticker).order_by(Signal.created_at.desc()).first()
         except Exception:
             logger.exception("Error getting latest signal for ticker %s", ticker)
             return None

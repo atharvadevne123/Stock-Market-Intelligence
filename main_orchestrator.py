@@ -1,4 +1,5 @@
 """Main orchestrator combining news, sentiment, and signal components."""
+
 from __future__ import annotations
 
 import logging
@@ -79,9 +80,7 @@ class StockMarketIntelligence:
             result["analysis_steps"].append("Sentiment analysis complete")
 
             logger.info("Step 3: Generating trading signal")
-            signal = self.signal_engine.generate_signal(
-                ticker, sentiment_scores=sentiment_results
-            )
+            signal = self.signal_engine.generate_signal(ticker, sentiment_scores=sentiment_results)
             result["signal"] = signal
             result["analysis_steps"].append("Signal generation complete")
             logger.info("Analysis complete for %s: %s", ticker, signal["final_signal"])
@@ -120,9 +119,7 @@ class StockMarketIntelligence:
 
     def _generate_portfolio_summary(self, analyses: list[dict]) -> dict:
         """Aggregate signal distribution across a portfolio."""
-        signal_counts: dict[str, int] = {
-            "STRONG_BUY": 0, "BUY": 0, "HOLD": 0, "SELL": 0, "STRONG_SELL": 0
-        }
+        signal_counts: dict[str, int] = {"STRONG_BUY": 0, "BUY": 0, "HOLD": 0, "SELL": 0, "STRONG_SELL": 0}
         for analysis in analyses:
             sig = analysis.get("signal", {}).get("final_signal")
             if sig in signal_counts:
@@ -161,9 +158,7 @@ class StockMarketIntelligence:
             sentiment_results: list[dict] = []
             for article in market_news[:20]:
                 try:
-                    sentiment = self.sentiment_analyzer.analyze_article(
-                        title=article.title, content=article.content
-                    )
+                    sentiment = self.sentiment_analyzer.analyze_article(title=article.title, content=article.content)
                     sentiment_results.append(sentiment)
                 except Exception:
                     pass
@@ -175,12 +170,8 @@ class StockMarketIntelligence:
                     "timestamp": datetime.now().isoformat(),
                 }
 
-            positive = sum(
-                1 for s in sentiment_results if s.get("combined_sentiment") == "positive"
-            )
-            negative = sum(
-                1 for s in sentiment_results if s.get("combined_sentiment") == "negative"
-            )
+            positive = sum(1 for s in sentiment_results if s.get("combined_sentiment") == "positive")
+            negative = sum(1 for s in sentiment_results if s.get("combined_sentiment") == "negative")
             total = len(sentiment_results)
 
             if positive / total > 0.5:

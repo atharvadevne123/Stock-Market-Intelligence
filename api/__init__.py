@@ -5,6 +5,7 @@ provides the `/health`, `/api/version`, `/api/metrics`,
 `/api/analyze`, `/api/signals`, `/api/technical`, and
 `/api/portfolio` endpoints.
 """
+
 from __future__ import annotations
 
 __version__ = "1.0.0"

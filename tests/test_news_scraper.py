@@ -1,4 +1,5 @@
 """Tests for scraper.news_scraper module."""
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta
@@ -77,10 +78,8 @@ class TestNewsAggregator:
     @patch("scraper.news_scraper.RSSFeedScraper")
     def test_get_market_news_filters_by_time(self, mock_rss_cls, mock_web_cls):
         mock_rss = mock_rss_cls.return_value
-        old_article = NewsArticle("Old", "Content", "Source", "https://x.com/old",
-                                  datetime.now() - timedelta(hours=48))
-        new_article = NewsArticle("New", "Content", "Source", "https://x.com/new",
-                                  datetime.now() - timedelta(hours=1))
+        old_article = NewsArticle("Old", "Content", "Source", "https://x.com/old", datetime.now() - timedelta(hours=48))
+        new_article = NewsArticle("New", "Content", "Source", "https://x.com/new", datetime.now() - timedelta(hours=1))
         mock_rss.fetch_all_feeds.return_value = [old_article, new_article]
         aggregator = NewsAggregator()
         result = aggregator.get_market_news(hours=24)
@@ -91,10 +90,12 @@ class TestNewsAggregator:
     @patch("scraper.news_scraper.RSSFeedScraper")
     def test_search_news_filters_by_query(self, mock_rss_cls, mock_web_cls):
         mock_rss = mock_rss_cls.return_value
-        ai_article = NewsArticle("AI breakthroughs", "Content", "S", "https://x.com/ai",
-                                 datetime.now() - timedelta(hours=1))
-        other_article = NewsArticle("Oil prices rise", "Content", "S", "https://x.com/oil",
-                                    datetime.now() - timedelta(hours=2))
+        ai_article = NewsArticle(
+            "AI breakthroughs", "Content", "S", "https://x.com/ai", datetime.now() - timedelta(hours=1)
+        )
+        other_article = NewsArticle(
+            "Oil prices rise", "Content", "S", "https://x.com/oil", datetime.now() - timedelta(hours=2)
+        )
         mock_rss.fetch_all_feeds.return_value = [ai_article, other_article]
         aggregator = NewsAggregator()
         result = aggregator.search_news("AI", hours=24)

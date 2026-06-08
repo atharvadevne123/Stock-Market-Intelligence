@@ -1,4 +1,5 @@
 """Debug helper to quickly test the sentiment analyser from the CLI."""
+
 from __future__ import annotations
 
 import argparse
@@ -22,6 +23,7 @@ def main(argv: list[str] | None = None) -> int:
     logger.info("Loading NewsArticleSentimentAnalyzer...")
     try:
         from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer
+
         analyzer = NewsArticleSentimentAnalyzer()
     except Exception:
         logger.exception("Failed to load analyser")

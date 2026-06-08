@@ -1,4 +1,5 @@
 """Tests for analysis.signal_engine module."""
+
 from __future__ import annotations
 
 import pytest
@@ -61,33 +62,33 @@ class TestSentimentSignalGenerator:
         )
         assert self.generator.generate_sentiment_signal(scores) == Signal.HOLD
 
-    @pytest.mark.parametrize("positive_pct,expected", [
-        (0.7, Signal.STRONG_BUY),
-        (0.5, Signal.BUY),
-        (0.1, Signal.STRONG_SELL),  # negative_ratio=0.9 > 0.6 -> STRONG_SELL
-    ])
+    @pytest.mark.parametrize(
+        "positive_pct,expected",
+        [
+            (0.7, Signal.STRONG_BUY),
+            (0.5, Signal.BUY),
+            (0.1, Signal.STRONG_SELL),  # negative_ratio=0.9 > 0.6 -> STRONG_SELL
+        ],
+    )
     def test_positive_ratios(self, positive_pct, expected):
         total = 10
         pos = int(total * positive_pct)
         neg = total - pos
-        scores = (
-            [{"combined_sentiment": "positive"}] * pos
-            + [{"combined_sentiment": "negative"}] * neg
-        )
+        scores = [{"combined_sentiment": "positive"}] * pos + [{"combined_sentiment": "negative"}] * neg
         assert self.generator.generate_sentiment_signal(scores) == expected
 
-    @pytest.mark.parametrize("negative_pct,expected", [
-        (0.7, Signal.STRONG_SELL),
-        (0.5, Signal.BUY),  # positive_ratio=0.5 > 0.4 fires before negative check -> BUY
-    ])
+    @pytest.mark.parametrize(
+        "negative_pct,expected",
+        [
+            (0.7, Signal.STRONG_SELL),
+            (0.5, Signal.BUY),  # positive_ratio=0.5 > 0.4 fires before negative check -> BUY
+        ],
+    )
     def test_negative_ratios(self, negative_pct, expected):
         total = 10
         neg = int(total * negative_pct)
         pos = total - neg
-        scores = (
-            [{"combined_sentiment": "negative"}] * neg
-            + [{"combined_sentiment": "positive"}] * pos
-        )
+        scores = [{"combined_sentiment": "negative"}] * neg + [{"combined_sentiment": "positive"}] * pos
         assert self.generator.generate_sentiment_signal(scores) == expected
 
     def test_single_positive_score(self):
@@ -105,13 +106,16 @@ class TestComprehensiveSignalEngineScoring:
     def setup_method(self):
         self.engine = ComprehensiveSignalEngine()
 
-    @pytest.mark.parametrize("signal,expected_score", [
-        (Signal.STRONG_BUY, 1.0),
-        (Signal.BUY, 0.5),
-        (Signal.HOLD, 0.0),
-        (Signal.SELL, -0.5),
-        (Signal.STRONG_SELL, -1.0),
-    ])
+    @pytest.mark.parametrize(
+        "signal,expected_score",
+        [
+            (Signal.STRONG_BUY, 1.0),
+            (Signal.BUY, 0.5),
+            (Signal.HOLD, 0.0),
+            (Signal.SELL, -0.5),
+            (Signal.STRONG_SELL, -1.0),
+        ],
+    )
     def test_signal_to_score(self, signal, expected_score):
         assert self.engine._signal_to_score(signal) == expected_score
 

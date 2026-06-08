@@ -3,6 +3,7 @@
 
 Run this script to verify the environment and demonstrate the system.
 """
+
 from __future__ import annotations
 
 import logging
