@@ -216,18 +216,52 @@ class AggregatedSentiment:
 class NewsArticleSentimentAnalyzer:
     """Combine title and body sentiment to score a full news article."""
 
-    def __init__(self) -> None:
+    def __init__(self, confidence_threshold: float = 0.0) -> None:
+        """Initialise the analyser.
+
+        Args:
+            confidence_threshold: Discard results below this confidence level,
+                replacing them with a neutral score. Useful for noisy inputs.
+        """
         self.analyzer = FinBERTSentimentAnalyzer()
+        self.confidence_threshold = confidence_threshold
+
+    def _apply_threshold(self, score: SentimentScore) -> SentimentScore:
+        """Return a neutral SentimentScore if confidence falls below the threshold."""
+        if self.confidence_threshold > 0 and score.confidence < self.confidence_threshold:
+            return SentimentScore(
+                text=score.text,
+                sentiment=SentimentScore.NEUTRAL,
+                confidence=score.confidence,
+                scores=score.scores,
+            )
+        return score
 
     def analyze_article_title(self, title: str) -> SentimentScore:
         """Analyse headline sentiment."""
-        return self.analyzer.analyze_sentiment(title)
+        return self._apply_threshold(self.analyzer.analyze_sentiment(title))
 
     def analyze_article_content(self, content: str) -> SentimentScore:
         """Analyse body-text sentiment."""
         if not content or not content.strip():
             return self.analyzer.analyze_sentiment("")
-        return self.analyzer.analyze_sentiment(content)
+        return self._apply_threshold(self.analyzer.analyze_sentiment(content))
+
+    def analyze_articles_batch(self, articles: list[dict]) -> list[dict]:
+        """Analyse a list of article dicts with ``title`` and ``content`` keys.
+
+        Args:
+            articles: List of dicts, each with ``title`` and optional ``content``.
+
+        Returns:
+            List of analysis result dicts in the same order as *articles*.
+        """
+        results = []
+        for article in articles:
+            title = article.get("title", "")
+            content = article.get("content", "")
+            results.append(self.analyze_article(title, content))
+        return results
 
     def analyze_article(self, title: str, content: str) -> dict:
         """Analyse a complete article by weighting title and content scores.
