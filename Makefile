@@ -1,4 +1,4 @@
-.PHONY: install install-dev test coverage coverage-html lint format lint-fix type-check audit run run-prod docker-build docker-up docker-down docker-logs clean help security-scan
+.PHONY: install install-dev test coverage coverage-html lint format lint-fix type-check audit run run-prod docker-build docker-up docker-down docker-logs clean help security-scan seed
 
 install:
 	pip install -r requirements.txt
@@ -61,10 +61,14 @@ docker-down:
 docker-logs:
 	docker-compose logs -f api
 
+seed:
+	python scripts/seed_data.py --db sqlite:///./dev.db
+	@echo "Dev database seeded: dev.db"
+
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -type f -name "*.pyc" -delete 2>/dev/null || true
-	rm -rf .coverage coverage.xml htmlcov/ .pytest_cache/ .mypy_cache/
+	rm -rf .coverage coverage.xml htmlcov/ .pytest_cache/ .mypy_cache/ dev.db
 
 help:
 	@echo "Available targets:"
@@ -85,4 +89,5 @@ help:
 	@echo "  docker-up      Start with Docker Compose"
 	@echo "  docker-down    Stop Docker Compose"
 	@echo "  docker-logs    Tail API container logs"
+	@echo "  seed           Populate dev.db with sample data"
 	@echo "  clean          Remove build and cache files"
