@@ -173,17 +173,28 @@ async def metrics() -> dict:
     }
 
 
+def _validate_ticker(ticker: str) -> str:
+    """Normalise and validate a ticker symbol. Raises 422 on invalid input."""
+    t = ticker.strip().upper()
+    if not _TICKER_RE.match(t):
+        raise HTTPException(status_code=422, detail=f"Invalid ticker symbol: {ticker!r}")
+    return t
+
+
 @app.get("/api/analyze/{ticker}", summary="Full analysis for a ticker")
 async def analyze_ticker(
     ticker: str,
     hours: int = Query(24, ge=1, le=720, description="Hours of news to include"),
 ) -> dict:
     """Run the complete analysis pipeline (news → sentiment → signal) for *ticker*."""
+    t = _validate_ticker(ticker)
     try:
-        logger.info("Analysing %s", ticker.upper())
-        return system.analyze_ticker(ticker.upper(), hours=hours)
+        logger.info("Analysing %s", t)
+        return system.analyze_ticker(t, hours=hours)
+    except HTTPException:
+        raise
     except Exception:
-        logger.exception("Error analysing %s", ticker)
+        logger.exception("Error analysing %s", t)
         raise HTTPException(status_code=500, detail="Analysis failed")
 
 
@@ -220,20 +231,26 @@ async def market_overview(
 @app.get("/api/signals/{ticker}", summary="Combined technical and sentiment signal")
 async def get_signal(ticker: str) -> dict:
     """Generate a comprehensive trading signal for *ticker*."""
+    t = _validate_ticker(ticker)
     try:
-        return signal_engine.generate_signal(ticker.upper())
+        return signal_engine.generate_signal(t)
+    except HTTPException:
+        raise
     except Exception:
-        logger.exception("Signal generation failed for %s", ticker)
+        logger.exception("Signal generation failed for %s", t)
         raise HTTPException(status_code=500, detail="Signal generation failed")
 
 
 @app.get("/api/technical/{ticker}", summary="Technical indicator analysis")
 async def get_technical(ticker: str) -> dict:
     """Return raw technical indicator values and the derived signal for *ticker*."""
+    t = _validate_ticker(ticker)
     try:
-        return signal_engine.technical_generator.generate_technical_signal(ticker.upper())
+        return signal_engine.technical_generator.generate_technical_signal(t)
+    except HTTPException:
+        raise
     except Exception:
-        logger.exception("Technical analysis failed for %s", ticker)
+        logger.exception("Technical analysis failed for %s", t)
         raise HTTPException(status_code=500, detail="Technical analysis failed")
 
 
