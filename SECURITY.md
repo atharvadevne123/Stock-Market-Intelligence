@@ -36,3 +36,30 @@ Run `pip-audit` or `safety` regularly:
 pip install pip-audit
 pip-audit -r requirements.txt
 ```
+
+## Automated Scanning
+
+The repository uses the `security-scan` Makefile target to run Trivy and pip-audit on every CI run:
+```bash
+make security-scan
+```
+
+Trivy scans the container image for OS and library CVEs. Results are uploaded as GitHub Actions artifacts.
+
+## SQL Injection Prevention
+
+All database queries use SQLAlchemy ORM parameterised bindings. Raw SQL is not used anywhere in the codebase. Never construct SQL strings from user input.
+
+## Rate Limiting
+
+The API enforces rate limiting via the `RATE_LIMIT_REQUESTS` and `RATE_LIMIT_WINDOW_SECONDS` environment variables. Exceeding the limit returns HTTP 429.
+
+## Responsible Disclosure Timeline
+
+| Day | Action |
+|-----|--------|
+| 0   | Vulnerability reported |
+| 1   | Acknowledgement sent |
+| 7   | Initial assessment complete |
+| 30  | Patch released (target) |
+| 90  | Public disclosure |
