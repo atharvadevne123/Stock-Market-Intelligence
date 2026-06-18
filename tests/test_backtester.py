@@ -56,11 +56,18 @@ class TestSimpleBacktester:
         result = self.bt.run(_prices(), _always_long())
         assert isinstance(result["sharpe_ratio"], float)
 
-    def test_flat_prices_zero_return(self):
+    def test_flat_prices_zero_commission_zero_return(self):
+        bt = SimpleBacktester(commission=0.0)
+        prices = pd.Series([100.0] * 252)
+        signals = _always_long(252)
+        result = bt.run(prices, signals)
+        assert result["total_return"] == pytest.approx(0.0, abs=1e-6)
+
+    def test_flat_prices_nonzero_commission_small_loss(self):
         prices = pd.Series([100.0] * 252)
         signals = _always_long(252)
         result = self.bt.run(prices, signals)
-        assert result["total_return"] == pytest.approx(0.0, abs=1e-6)
+        assert result["total_return"] < 0  # commission on initial entry
 
     @pytest.mark.parametrize("commission", [0.0, 0.001, 0.005])
     def test_various_commissions(self, commission):
