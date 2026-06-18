@@ -73,6 +73,31 @@ class TestRSSFeedScraper:
         assert RSSFeedScraper().timeout == 10
 
 
+class TestNewsArticleUrlHash:
+    def test_hash_is_16_chars(self):
+        article = NewsArticle("T", "C", "S", "https://example.com/test", datetime.now())
+        assert len(article.url_hash) == 16
+
+    def test_same_url_same_hash(self):
+        a1 = NewsArticle("T1", "C1", "S1", "https://example.com/same", datetime.now())
+        a2 = NewsArticle("T2", "C2", "S2", "https://example.com/same", datetime.now())
+        assert a1.url_hash == a2.url_hash
+
+    def test_different_urls_different_hashes(self):
+        a1 = NewsArticle("T", "C", "S", "https://example.com/a", datetime.now())
+        a2 = NewsArticle("T", "C", "S", "https://example.com/b", datetime.now())
+        assert a1.url_hash != a2.url_hash
+
+    def test_case_insensitive_url(self):
+        a1 = NewsArticle("T", "C", "S", "https://EXAMPLE.COM/test", datetime.now())
+        a2 = NewsArticle("T", "C", "S", "https://example.com/test", datetime.now())
+        assert a1.url_hash == a2.url_hash
+
+    def test_hash_is_string(self):
+        article = NewsArticle("T", "C", "S", "https://x.com/hash-test", datetime.now())
+        assert isinstance(article.url_hash, str)
+
+
 class TestNewsAggregator:
     @patch("scraper.news_scraper.WebScraper")
     @patch("scraper.news_scraper.RSSFeedScraper")
