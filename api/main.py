@@ -9,9 +9,13 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import AsyncGenerator
 
+import re
+
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+
+_TICKER_RE = re.compile(r"^[A-Z]{1,5}(\.[A-Z]{1,2})?$")
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +131,22 @@ async def root() -> dict:
 @app.get("/health", summary="Health check")
 async def health() -> dict:
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/health/detailed", summary="Detailed component health check")
+async def health_detailed() -> dict:
+    """Return per-component health status for the API, ML engine, and news aggregator."""
+    components: dict[str, str] = {}
+    components["api"] = "healthy"
+    components["signal_engine"] = "healthy" if signal_engine is not None else "unavailable"
+    components["orchestrator"] = "healthy" if system is not None else "unavailable"
+    overall = "healthy" if all(v == "healthy" for v in components.values()) else "degraded"
+    return {
+        "status": overall,
+        "components": components,
+        "uptime_seconds": round(time.time() - _start_time, 1),
+        "timestamp": datetime.now().isoformat(),
+    }
 
 
 @app.get("/api/version", summary="API version and uptime")
