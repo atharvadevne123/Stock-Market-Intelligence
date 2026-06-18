@@ -145,6 +145,42 @@ class BacktestResult(Base):
         return f"<BacktestResult(id={self.id}, ticker={self.ticker!r}, strategy={self.strategy!r})>"
 
 
+class WatchList(Base):
+    """A named watchlist of tickers for monitoring."""
+
+    __tablename__ = "watchlists"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    tickers = Column(String(500), nullable=False)
+    description = Column(Text)
+    created_at = Column(DateTime, default=_utcnow)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
+
+    def __repr__(self) -> str:
+        return f"<WatchList(id={self.id}, name={self.name!r})>"
+
+    def ticker_list(self) -> list[str]:
+        """Return tickers as a Python list."""
+        return [t.strip().upper() for t in self.tickers.split(",") if t.strip()]
+
+
+class UserPreferences(Base):
+    """Key-value user preferences store."""
+
+    __tablename__ = "user_preferences"
+    __table_args__ = (Index("ix_user_prefs_key", "key"),)
+
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String(100), nullable=False, unique=True)
+    value = Column(Text, nullable=False)
+    description = Column(String(255))
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
+
+    def __repr__(self) -> str:
+        return f"<UserPreferences(key={self.key!r})>"
+
+
 def init_db() -> None:
     """Create all database tables."""
     Base.metadata.create_all(bind=engine)
