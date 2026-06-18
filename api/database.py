@@ -173,3 +173,55 @@ class DatabaseService:
         except Exception:
             logger.exception("Error getting articles for ticker %s", ticker)
             return []
+
+    @staticmethod
+    def get_recent_signals(db: Session, limit: int = 50) -> list:
+        """Return the most recent signals across all tickers."""
+        try:
+            from database.models import Signal
+
+            return db.query(Signal).order_by(Signal.created_at.desc()).limit(limit).all()
+        except Exception:
+            logger.exception("Error fetching recent signals")
+            return []
+
+    @staticmethod
+    def delete_old_articles(db: Session, days: int = 90) -> int:
+        """Delete articles older than *days* days. Returns count of deleted rows."""
+        try:
+            from database.models import Article
+
+            cutoff = _utcnow() - timedelta(days=days)
+            deleted = db.query(Article).filter(Article.created_at < cutoff).delete(synchronize_session=False)
+            db.commit()
+            logger.info("Deleted %d articles older than %d days", deleted, days)
+            return deleted
+        except Exception:
+            db.rollback()
+            logger.exception("Error deleting old articles")
+            return 0
+
+    @staticmethod
+    def get_signal_aggregation_by_date(db: Session, ticker: str, days: int = 7) -> list[dict]:
+        """Return daily signal counts and average scores for a ticker."""
+        try:
+            from database.models import Signal
+
+            cutoff = _utcnow() - timedelta(days=days)
+            signals = (
+                db.query(Signal)
+                .filter(Signal.ticker == ticker, Signal.created_at >= cutoff)
+                .order_by(Signal.created_at)
+                .all()
+            )
+            buckets: dict[str, list[float]] = {}
+            for s in signals:
+                day = s.created_at.strftime("%Y-%m-%d") if s.created_at else "unknown"
+                buckets.setdefault(day, []).append(s.combined_score or 0.0)
+            return [
+                {"date": day, "count": len(scores), "avg_score": round(sum(scores) / len(scores), 3)}
+                for day, scores in sorted(buckets.items())
+            ]
+        except Exception:
+            logger.exception("Error aggregating signals for ticker %s", ticker)
+            return []
