@@ -11,7 +11,6 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from datetime import datetime, timedelta
 from pathlib import Path
 
 # Allow running from the repo root without installing the package.
@@ -21,7 +20,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from api.database import DatabaseService
-from database.models import Base, WatchList, UserPreferences
+from database.models import Base, UserPreferences, WatchList
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 log = logging.getLogger(__name__)

@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import AsyncGenerator
-
-import re
 
 from fastapi import FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -263,6 +262,7 @@ async def get_portfolio_risk(
     t = _validate_ticker(ticker)
     try:
         import yfinance as yf
+
         from analysis.portfolio_risk import PortfolioRiskCalculator
 
         hist = yf.Ticker(t).history(period=period)
