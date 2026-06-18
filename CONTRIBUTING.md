@@ -73,6 +73,31 @@ Please use the GitHub Issues tracker. Include:
 - Expected vs actual behaviour
 - Relevant stack trace
 
+## Branch Naming
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Feature | `feat/<short-desc>` | `feat/portfolio-risk-endpoint` |
+| Bug fix | `fix/<short-desc>` | `fix/ticker-validation-edge-case` |
+| Docs | `docs/<short-desc>` | `docs/api-portfolio-section` |
+| Chore | `chore/<short-desc>` | `chore/update-deps` |
+
+## Testing Guidelines
+
+- Aim for ≥ 80% line coverage on new modules.
+- Use `pytest.mark.parametrize` for data-driven tests.
+- Mock external HTTP calls and database I/O in unit tests.
+- Integration tests live in `tests/test_integration.py` and may use a real SQLite in-memory database.
+
+## Review Checklist
+
+Before requesting a review, verify:
+- [ ] All tests pass locally (`make test`)
+- [ ] No new ruff lint errors (`make lint`)
+- [ ] Type annotations present on public functions
+- [ ] `CHANGELOG.md` updated under `[Unreleased]`
+- [ ] No secrets or credentials committed
+
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
