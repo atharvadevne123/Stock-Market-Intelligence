@@ -38,6 +38,9 @@ asyncio_mode = "auto"
 markers = [
     "slow: marks tests as slow (deselect with -m 'not slow')",
     "integration: marks tests as integration tests",
+    "unit: marks fast unit tests",
+    "api: marks API endpoint tests",
+    "db: marks database-level tests",
 ]
 
 [tool.mypy]
@@ -51,7 +54,7 @@ disallow_untyped_defs = false
 check_untyped_defs = true
 
 [tool.coverage.run]
-source = ["analysis", "api", "database", "scraper", "nlp", "scheduler"]
+source = ["analysis", "api", "cache", "database", "scraper", "nlp", "scheduler", "utils"]
 omit = ["tests/*", "*/migrations/*", "*/__pycache__/*", "scripts/*"]
 branch = true
 
