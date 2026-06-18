@@ -363,6 +363,47 @@ Output: adjusted GTI score, per-asset price impact %, BUY/SELL/HOLD signals, thr
 
 ---
 
+## Portfolio Risk API
+
+The `/api/portfolio/risk/{ticker}` endpoint returns quantitative risk metrics for any ticker:
+
+```bash
+curl "http://localhost:8000/api/portfolio/risk/AAPL?period=1y"
+```
+
+```json
+{
+  "ticker": "AAPL",
+  "var_95": 0.0241,
+  "sharpe_ratio": 1.832,
+  "max_drawdown": 0.1423,
+  "annualised_vol": 0.2187,
+  "timestamp": "2026-06-18T09:30:00"
+}
+```
+
+| Metric | Description |
+|--------|-------------|
+| `var_95` | Historical 95% Value-at-Risk (worst expected daily loss, 5% chance) |
+| `sharpe_ratio` | Annualised risk-adjusted return (higher = better) |
+| `max_drawdown` | Largest peak-to-trough decline as a fraction |
+| `annualised_vol` | Annualised standard deviation of daily returns |
+
+Extended metrics (CAGR, Sortino ratio, Calmar ratio) are available via `PerformanceMetrics` in `analysis/performance_metrics.py`.
+
+---
+
+## Development Tools
+
+```bash
+make seed          # Populate dev.db with sample data
+make coverage-html # Generate HTML coverage report
+make security-scan # Bandit static security scan
+make audit         # pip-audit dependency scan
+```
+
+---
+
 ## Disclaimer
 
 For **educational purposes only**. Not financial advice. Always do your own research and consult a qualified financial advisor before trading.
