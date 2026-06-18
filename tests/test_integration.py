@@ -130,3 +130,43 @@ class TestDatabaseArticlePipeline:
             )
         articles = DatabaseService.get_recent_articles(db, "GOOGL", limit=3)
         assert len(articles) == 3
+
+    def test_delete_old_articles_integration(self, db):
+        from api.database import DatabaseService
+
+        DatabaseService.save_article(db, "TSLA", "Headline", "Body", "WSJ", "https://example.com/tsla-int-del")
+        count_before = db.query(__import__("database.models", fromlist=["Article"]).Article).count()
+        deleted = DatabaseService.delete_old_articles(db, days=90)
+        count_after = db.query(__import__("database.models", fromlist=["Article"]).Article).count()
+        assert isinstance(deleted, int)
+        assert count_after <= count_before
+
+    def test_watchlist_ticker_list_integration(self, db):
+        from database.models import WatchList
+
+        wl = WatchList(name="My Portfolio", tickers="AAPL, MSFT, GOOGL")
+        db.add(wl)
+        db.commit()
+        loaded = db.query(WatchList).filter_by(name="My Portfolio").first()
+        assert loaded is not None
+        assert len(loaded.ticker_list()) == 3
+
+
+class TestNewsArticleHashIntegration:
+    def test_url_hash_uniqueness_in_batch(self):
+        from scraper.news_scraper import NewsArticle
+
+        articles = [
+            NewsArticle("T1", "C", "S", f"https://example.com/hash-int-{i}", __import__("datetime").datetime.now())
+            for i in range(10)
+        ]
+        hashes = {a.url_hash for a in articles}
+        assert len(hashes) == 10
+
+    def test_duplicate_url_same_hash_in_batch(self):
+        from scraper.news_scraper import NewsArticle
+
+        url = "https://example.com/dupe-hash-int"
+        a1 = NewsArticle("T1", "C1", "S", url, __import__("datetime").datetime.now())
+        a2 = NewsArticle("T2", "C2", "S", url, __import__("datetime").datetime.now())
+        assert a1.url_hash == a2.url_hash
