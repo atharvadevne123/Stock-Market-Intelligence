@@ -68,46 +68,53 @@ class RSSFeedScraper:
         self.timeout = timeout
         self.session = requests.Session()
 
-    def fetch_feed(self, feed_url: str, feed_name: str) -> list[NewsArticle]:
-        """Fetch articles from a single RSS feed"""
+    def fetch_feed(self, feed_url: str, feed_name: str, retries: int = 3) -> list[NewsArticle]:
+        """Fetch articles from a single RSS feed with exponential-backoff retries."""
         articles = []
-        try:
-            logger.info(f"Fetching {feed_name} feed...")
-            feed = feedparser.parse(feed_url)
+        last_exc: Exception | None = None
+        for attempt in range(retries):
+            try:
+                logger.info("Fetching %s feed (attempt %d)...", feed_name, attempt + 1)
+                feed = feedparser.parse(feed_url)
 
-            for entry in feed.entries[:10]:  # Get latest 10 articles
-                try:
-                    title = entry.get("title", "No title")
-                    content = entry.get("summary", "")[:500]  # Truncate
-                    url = entry.get("link", "")
+                for entry in feed.entries[:10]:
+                    try:
+                        title = entry.get("title", "No title")
+                        content = entry.get("summary", "")[:500]
+                        url = entry.get("link", "")
 
-                    # Parse published date
-                    pub_date = datetime.now()
-                    if hasattr(entry, "published_parsed") and entry.published_parsed:
-                        pub_date = datetime(*entry.published_parsed[:6])
+                        pub_date = datetime.now()
+                        if hasattr(entry, "published_parsed") and entry.published_parsed:
+                            pub_date = datetime(*entry.published_parsed[:6])
 
-                    article = NewsArticle(
-                        title=title, content=content, source=feed_name, url=url, published_date=pub_date
-                    )
-                    articles.append(article)
+                        article = NewsArticle(
+                            title=title, content=content, source=feed_name, url=url, published_date=pub_date
+                        )
+                        articles.append(article)
 
-                except Exception as e:
-                    logger.warning(f"Error parsing entry from {feed_name}: {e}")
-                    continue
+                    except Exception as e:
+                        logger.warning("Error parsing entry from %s: %s", feed_name, e)
+                        continue
+                return articles
+            except Exception as e:
+                last_exc = e
+                wait = 2**attempt
+                logger.warning("Error fetching %s feed (attempt %d): %s. Retrying in %ds.", feed_name, attempt + 1, e, wait)
+                time.sleep(wait)
 
-        except Exception as e:
-            logger.error(f"Error fetching {feed_name} feed: {e}")
-
+        logger.error("All %d attempts failed for %s feed: %s", retries, feed_name, last_exc)
         return articles
 
     def fetch_all_feeds(self) -> list[NewsArticle]:
-        """Fetch from all configured feeds"""
-        all_articles = []
+        """Fetch from all configured feeds, deduplicating by URL hash."""
+        seen: set[str] = set()
+        all_articles: list[NewsArticle] = []
         for feed_name, feed_url in self.FEEDS.items():
-            articles = self.fetch_feed(feed_url, feed_name)
-            all_articles.extend(articles)
+            for article in self.fetch_feed(feed_url, feed_name):
+                if article.url_hash not in seen:
+                    seen.add(article.url_hash)
+                    all_articles.append(article)
 
-        # Sort by date (newest first)
         all_articles.sort(key=lambda x: x.published_date, reverse=True)
         return all_articles
 
