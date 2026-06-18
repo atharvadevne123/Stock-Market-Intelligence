@@ -11,19 +11,19 @@ import pytest
 
 
 @pytest.fixture
-def sample_ticker():
+def sample_ticker() -> str:
     """Return a sample stock ticker."""
     return "AAPL"
 
 
 @pytest.fixture
-def sample_tickers():
+def sample_tickers() -> list[str]:
     """Return a list of sample stock tickers."""
     return ["AAPL", "MSFT", "GOOGL"]
 
 
 @pytest.fixture
-def sample_sentiment_scores():
+def sample_sentiment_scores() -> list[dict]:
     """Return sample sentiment score dictionaries."""
     return [
         {"combined_sentiment": "positive", "combined_confidence": 0.85},
@@ -33,7 +33,7 @@ def sample_sentiment_scores():
 
 
 @pytest.fixture
-def sample_negative_sentiment_scores():
+def sample_negative_sentiment_scores() -> list[dict]:
     """Return predominantly negative sentiment scores."""
     return [
         {"combined_sentiment": "negative", "combined_confidence": 0.90},
@@ -44,7 +44,7 @@ def sample_negative_sentiment_scores():
 
 
 @pytest.fixture
-def sample_article_data():
+def sample_article_data() -> dict:
     """Return sample article data dictionary."""
     return {
         "title": "Apple Reports Record Quarterly Revenue",
@@ -87,7 +87,7 @@ def mock_yf_download(mock_ohlcv_df):
 
 
 @pytest.fixture
-def mock_news_articles():
+def mock_news_articles() -> list[dict]:
     """Return a list of mock NewsArticle-like dicts."""
     now = datetime.now()
     return [
