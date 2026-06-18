@@ -148,3 +148,44 @@ class TestPortfolioEndpoint:
     def test_portfolio_no_tickers_returns_422(self, client):
         resp = client.get("/api/portfolio")
         assert resp.status_code == 422
+
+
+class TestDetailedHealthEndpoint:
+    def test_detailed_health_returns_200(self, client):
+        assert client.get("/health/detailed").status_code == 200
+
+    def test_detailed_health_has_components(self, client):
+        resp = client.get("/health/detailed").json()
+        assert "components" in resp
+
+    def test_detailed_health_has_uptime(self, client):
+        resp = client.get("/health/detailed").json()
+        assert "uptime_seconds" in resp
+
+    def test_detailed_health_api_component_healthy(self, client):
+        resp = client.get("/health/detailed").json()
+        assert resp["components"]["api"] == "healthy"
+
+
+class TestTickerValidation:
+    @pytest.mark.parametrize("bad_ticker", ["lower", "12345", "TOOLONG_TICKER", "A!B", ""])
+    def test_invalid_tickers_rejected(self, client, bad_ticker: str):
+        resp = client.get(f"/api/analyze/{bad_ticker}")
+        assert resp.status_code in (422, 404)
+
+    @pytest.mark.parametrize("good_ticker", ["AAPL", "MSFT", "BRK.A", "GOOGL"])
+    def test_valid_tickers_accepted(self, client, good_ticker: str):
+        resp = client.get(f"/api/analyze/{good_ticker}")
+        assert resp.status_code in (200, 500)
+
+    def test_lowercase_ticker_normalised(self, client, mock_system):
+        client.get("/api/analyze/aapl")
+        mock_system.analyze_ticker.assert_called_with("AAPL", hours=24)
+
+    def test_signals_invalid_ticker_rejected(self, client):
+        resp = client.get("/api/signals/invalid!")
+        assert resp.status_code == 422
+
+    def test_technical_invalid_ticker_rejected(self, client):
+        resp = client.get("/api/technical/invalid!")
+        assert resp.status_code == 422
