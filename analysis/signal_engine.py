@@ -208,6 +208,55 @@ class TechnicalSignalGenerator:
             return Signal.SELL, result
         return Signal.HOLD, result
 
+    def analyze_volume(self, volume: pd.Series, prices: pd.Series) -> tuple[Signal, dict]:
+        """Generate a volume-trend confirmation signal.
+
+        Rising volume with rising price confirms bullish momentum; falling price
+        with rising volume confirms bearish pressure.
+        """
+        if len(volume) < 20:
+            return Signal.HOLD, {}
+        avg_volume = float(volume.rolling(20).mean().iloc[-1])
+        latest_volume = float(volume.iloc[-1])
+        price_change = float(prices.iloc[-1]) - float(prices.iloc[-2])
+        volume_ratio = round(latest_volume / avg_volume if avg_volume > 0 else 1.0, 2)
+        result = {"volume": latest_volume, "avg_volume_20d": round(avg_volume, 0), "volume_ratio": volume_ratio}
+        if volume_ratio > 1.5 and price_change > 0:
+            return Signal.BUY, result
+        if volume_ratio > 1.5 and price_change < 0:
+            return Signal.SELL, result
+        return Signal.HOLD, result
+
+    def calculate_position_size(
+        self,
+        account_value: float,
+        latest_price: float,
+        atr_value: float,
+        risk_pct: float = 0.01,
+    ) -> dict:
+        """ATR-based position sizing with fixed fractional risk.
+
+        Args:
+            account_value: Total account equity in dollars.
+            latest_price:  Current price of the instrument.
+            atr_value:     14-period ATR value.
+            risk_pct:      Fraction of account to risk per trade (default 1%).
+
+        Returns:
+            Dict with ``shares``, ``stop_loss``, and ``dollar_risk``.
+        """
+        if atr_value <= 0 or latest_price <= 0:
+            return {"shares": 0, "stop_loss": 0.0, "dollar_risk": 0.0}
+        dollar_risk = account_value * risk_pct
+        stop_distance = atr_value * 2
+        shares = int(dollar_risk / stop_distance)
+        stop_loss = round(latest_price - stop_distance, 2)
+        return {
+            "shares": shares,
+            "stop_loss": stop_loss,
+            "dollar_risk": round(dollar_risk, 2),
+        }
+
     def generate_technical_signal(self, ticker: str, period: str = "3mo") -> dict:
         """Download OHLCV data and generate a combined technical signal.
 
