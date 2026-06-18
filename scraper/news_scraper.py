@@ -5,7 +5,9 @@ Combines multiple sources: RSS feeds, web scraping, Reddit, and news APIs.
 
 from __future__ import annotations
 
+import hashlib
 import logging
+import time
 from datetime import datetime, timedelta
 
 try:
@@ -32,6 +34,11 @@ class NewsArticle:
         self.url = url
         self.published_date = published_date
         self.ticker = ticker
+
+    @property
+    def url_hash(self) -> str:
+        """SHA-256 fingerprint of the canonical URL for deduplication."""
+        return hashlib.sha256(self.url.strip().lower().encode()).hexdigest()[:16]
 
     def to_dict(self) -> dict:
         """Convert to dictionary for storage/API"""
