@@ -7,6 +7,32 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added (2026-06-18)
+- **WatchList and UserPreferences ORM models** — named ticker watchlists and key-value user settings
+- **`/health/detailed` endpoint** — per-component health status (API, signal engine, orchestrator)
+- **Ticker symbol regex validation** — `_validate_ticker()` enforces `^[A-Z]{1,5}(\.[A-Z]{1,2})?$` on all ticker endpoints
+- **Stochastic oscillator and Williams %R** — new indicators in `TechnicalIndicator`
+- **`analyze_stochastic` and `analyze_williams_r`** — signal generators in `TechnicalSignalGenerator`
+- **`analyze_volume` and `calculate_position_size`** — volume trend confirmation and ATR-based sizing
+- **`RetryableTask` and `TaskRegistry`** — exponential-backoff retry and multi-task registry in `scheduler`
+- **`confidence_threshold` filtering** — `NewsArticleSentimentAnalyzer` discards low-confidence results
+- **`analyze_articles_batch`** — bulk article sentiment analysis
+- **URL hash deduplication** — `NewsArticle.url_hash` property; `RSSFeedScraper.fetch_all_feeds` deduplicates
+- **Retry logic in `RSSFeedScraper.fetch_feed`** — up to 3 attempts with exponential backoff
+- **`get_recent_signals`, `delete_old_articles`, `get_signal_aggregation_by_date`** — new `DatabaseService` methods
+- **GitHub issue templates** — bug report and feature request templates
+- **GitHub PR template** — standard checklist-based PR description
+- **CODEOWNERS** — automatic review assignment
+- **CODE_OF_CONDUCT.md** — Contributor Covenant
+- **150+ new tests** — scheduler, technical indicators, API ticker validation, DB service methods, sentiment threshold
+
+### Changed (2026-06-18)
+- `scraper/news_scraper.py` — replaced `print()` with structured logging in `__main__` block
+- `quick_start.py` — replaced all `print()` calls with `logging` calls
+- `api/main.py` — added `re` import; endpoints raise 422 on invalid ticker symbols
+
+## [Unreleased — 2026-05-12]
+
 ### Added
 - **Test suite** — 60+ tests across signal engine, API, database, scraper, sentiment, and integration
 - **GitHub Actions CI** — lint, test (3.10/3.11/3.12), type-check, and Codecov upload
