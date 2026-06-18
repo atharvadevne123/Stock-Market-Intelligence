@@ -254,6 +254,29 @@ async def get_technical(ticker: str) -> dict:
         raise HTTPException(status_code=500, detail="Technical analysis failed")
 
 
+@app.get("/api/portfolio/risk/{ticker}", summary="Portfolio risk metrics for a single ticker")
+async def get_portfolio_risk(
+    ticker: str,
+    period: str = Query("1y", description="yfinance period string (e.g. 1y, 6mo, 3mo)"),
+) -> dict:
+    """Return VaR, Sharpe ratio, max drawdown, and annualised vol for *ticker*."""
+    t = _validate_ticker(ticker)
+    try:
+        import yfinance as yf
+        from analysis.portfolio_risk import PortfolioRiskCalculator
+
+        hist = yf.Ticker(t).history(period=period)
+        if hist.empty:
+            raise HTTPException(status_code=404, detail=f"No price data found for {t}")
+        calc = PortfolioRiskCalculator()
+        return calc.summary(hist["Close"], ticker=t)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Portfolio risk calculation failed for %s", t)
+        raise HTTPException(status_code=500, detail="Portfolio risk calculation failed")
+
+
 if __name__ == "__main__":
     import uvicorn
 
