@@ -240,34 +240,24 @@ class NewsAggregator:
 
 # Example usage and testing
 if __name__ == "__main__":
-    # Initialize aggregator
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    _log = logging.getLogger(__name__)
+
     aggregator = NewsAggregator()
 
-    # Get market news
-    print("\n=== MARKET NEWS (Last 24 hours) ===")
+    _log.info("=== MARKET NEWS (Last 24 hours) ===")
     market_news = aggregator.get_market_news(hours=24)
     for article in market_news[:5]:
-        print(f"\nTitle: {article.title}")
-        print(f"Source: {article.source}")
-        print(f"Date: {article.published_date}")
-        print(f"URL: {article.url}")
-        print("-" * 80)
+        _log.info("Title: %s | Source: %s | Date: %s | URL: %s", article.title, article.source, article.published_date, article.url)
 
-    # Get news for a specific ticker
-    print("\n=== TICKER NEWS (AAPL) ===")
+    _log.info("=== TICKER NEWS (AAPL) ===")
     ticker_news = aggregator.get_ticker_news("AAPL")
     for article in ticker_news[:3]:
-        print(f"\nTitle: {article.title}")
-        print(f"Source: {article.source}")
-        print(f"Date: {article.published_date}")
-        print("-" * 80)
+        _log.info("Title: %s | Source: %s | Date: %s", article.title, article.source, article.published_date)
 
-    # Search for specific news
-    print("\n=== SEARCH RESULTS (AI) ===")
+    _log.info("=== SEARCH RESULTS (AI) ===")
     search_results = aggregator.search_news("AI", hours=24)
     for article in search_results[:3]:
-        print(f"\nTitle: {article.title}")
-        print(f"Source: {article.source}")
-        print("-" * 80)
+        _log.info("Title: %s | Source: %s", article.title, article.source)
 
-    print("\n✅ News scraper module working!")
+    _log.info("News scraper module working!")
