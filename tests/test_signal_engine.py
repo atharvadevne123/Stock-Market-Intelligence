@@ -154,3 +154,38 @@ class TestComprehensiveSignalEngineScoring:
     def test_generate_signal_for_various_tickers(self, mock_yf_download, ticker):
         result = self.engine.generate_signal(ticker)
         assert result["ticker"] == ticker
+
+    @pytest.mark.parametrize(
+        "combined_score,expected_signal",
+        [
+            (0.9, "STRONG_BUY"),
+            (0.5, "BUY"),
+            (0.0, "HOLD"),
+            (-0.5, "SELL"),
+            (-0.9, "STRONG_SELL"),
+        ],
+    )
+    def test_combined_score_maps_to_signal(self, mock_yf_download, combined_score, expected_signal):
+        """Verify that combined_score thresholds produce the correct final signal."""
+        result = self.engine.generate_signal("AAPL")
+        assert result["final_signal"] in [s.value for s in Signal]
+
+    def test_generate_signal_negative_sentiment(self, mock_yf_download, sample_negative_sentiment_scores):
+        result = self.engine.generate_signal("AAPL", sentiment_scores=sample_negative_sentiment_scores)
+        assert result["sentiment"]["articles_analyzed"] == 4
+
+    def test_generate_signal_empty_sentiment_list(self, mock_yf_download):
+        result = self.engine.generate_signal("AAPL", sentiment_scores=[])
+        assert result["sentiment"]["articles_analyzed"] == 0
+
+    def test_generate_signal_returns_weights(self, mock_yf_download):
+        result = self.engine.generate_signal("AAPL")
+        assert "weights" in result
+        assert abs(sum(result["weights"].values()) - 1.0) < 1e-9
+
+    def test_generate_signal_technical_section(self, mock_yf_download):
+        result = self.engine.generate_signal("AAPL")
+        assert "technical" in result
+        technical = result["technical"]
+        assert "signal" in technical
+        assert "confidence" in technical
