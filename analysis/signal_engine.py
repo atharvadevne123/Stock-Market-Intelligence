@@ -78,6 +78,30 @@ class TechnicalIndicator:
         """Return the Average True Range series."""
         return ta.atr(high, low, close, length=period)
 
+    @staticmethod
+    def calculate_stochastic(
+        high: pd.Series,
+        low: pd.Series,
+        close: pd.Series,
+        k_period: int = 14,
+        d_period: int = 3,
+    ) -> tuple[pd.Series | None, pd.Series | None]:
+        """Return (%K, %D) stochastic oscillator series."""
+        stoch = ta.stoch(high, low, close, k=k_period, d=d_period)
+        if stoch is not None and len(stoch.columns) >= 2:
+            return stoch.iloc[:, 0], stoch.iloc[:, 1]
+        return None, None
+
+    @staticmethod
+    def calculate_williams_r(
+        high: pd.Series,
+        low: pd.Series,
+        close: pd.Series,
+        period: int = 14,
+    ) -> pd.Series | None:
+        """Return Williams %R series (range -100 to 0)."""
+        return ta.willr(high, low, close, length=period)
+
 
 class TechnicalSignalGenerator:
     """Generate buy/sell/hold signals from technical indicators."""
