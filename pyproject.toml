@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "stock-market-intelligence-py"
-version = "1.0.0"
+version = "1.1.0"
 description = "Stock market data analysis and intelligence platform"
 readme = "README.md"
 requires-python = ">=3.9"
