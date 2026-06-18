@@ -95,3 +95,56 @@ class TestNewsArticleSentimentAnalyzer:
         )
         result = analyzer.analyze_article("test title", "test content")
         assert result["combined_sentiment"] in ("positive", "negative", "neutral")
+
+
+class TestConfidenceThreshold:
+    def _make_analyzer(self, threshold: float = 0.0):
+        from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer, SentimentScore
+
+        analyzer = NewsArticleSentimentAnalyzer(confidence_threshold=threshold)
+        mock_score = SentimentScore(
+            text="test",
+            sentiment="positive",
+            confidence=0.4,
+            scores={"positive": 0.4, "negative": 0.3, "neutral": 0.3},
+        )
+        analyzer.analyzer = MagicMock()
+        analyzer.analyzer.analyze_sentiment.return_value = mock_score
+        return analyzer
+
+    def test_below_threshold_becomes_neutral(self):
+        analyzer = self._make_analyzer(threshold=0.6)
+        result = analyzer.analyze_article_title("Test headline")
+        assert result.sentiment == "neutral"
+
+    def test_zero_threshold_keeps_original(self):
+        analyzer = self._make_analyzer(threshold=0.0)
+        result = analyzer.analyze_article_title("Test headline")
+        assert result.sentiment == "positive"
+
+    def test_threshold_attribute_stored(self):
+        from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer
+
+        with MagicMock():
+            analyzer = NewsArticleSentimentAnalyzer.__new__(NewsArticleSentimentAnalyzer)
+            analyzer.confidence_threshold = 0.75
+            assert analyzer.confidence_threshold == 0.75
+
+    def test_analyze_articles_batch_returns_list(self):
+        from nlp.sentiment_analyzer import NewsArticleSentimentAnalyzer, SentimentScore
+
+        analyzer = NewsArticleSentimentAnalyzer.__new__(NewsArticleSentimentAnalyzer)
+        analyzer.confidence_threshold = 0.0
+
+        mock_score = SentimentScore("t", "positive", 0.9, {"positive": 0.9})
+        mock_analyzer = MagicMock()
+        mock_analyzer.analyze_sentiment.return_value = mock_score
+        analyzer.analyzer = mock_analyzer
+
+        articles = [
+            {"title": "Apple rises", "content": "Strong results"},
+            {"title": "MSFT beats", "content": "Cloud growth"},
+        ]
+        results = analyzer.analyze_articles_batch(articles)
+        assert len(results) == 2
+        assert all("combined_sentiment" in r for r in results)
