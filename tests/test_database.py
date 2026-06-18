@@ -110,3 +110,68 @@ class TestSaveSentiment:
 
         result = DatabaseService.save_sentiment(db, "TEST", sentiment, 0.8, 0.5, 0.3, 0.2)
         assert result.sentiment == sentiment
+
+
+class TestGetRecentSignals:
+    def test_empty_returns_empty_list(self, db):
+        from api.database import DatabaseService
+
+        assert DatabaseService.get_recent_signals(db) == []
+
+    def test_returns_signals(self, db):
+        from api.database import DatabaseService
+
+        DatabaseService.save_signal(db, "AAPL", "BUY", 0.5, 0.4, 0.3, 0.7, 175.0, 2.5)
+        DatabaseService.save_signal(db, "MSFT", "SELL", -0.3, -0.4, -0.2, 0.6, 290.0, -1.0)
+        result = DatabaseService.get_recent_signals(db)
+        assert len(result) == 2
+
+    def test_limit_respected(self, db):
+        from api.database import DatabaseService
+
+        for i in range(5):
+            DatabaseService.save_signal(db, "AAPL", "HOLD", 0.0, 0.0, 0.0, 0.5, 170.0, 0.0)
+        result = DatabaseService.get_recent_signals(db, limit=3)
+        assert len(result) == 3
+
+
+class TestDeleteOldArticles:
+    def test_deletes_zero_when_all_recent(self, db):
+        from api.database import DatabaseService
+
+        DatabaseService.save_article(db, "AAPL", "T", "C", "S", "https://example.com/recent-delete-test")
+        deleted = DatabaseService.delete_old_articles(db, days=90)
+        assert deleted == 0
+
+    def test_returns_integer(self, db):
+        from api.database import DatabaseService
+
+        result = DatabaseService.delete_old_articles(db, days=30)
+        assert isinstance(result, int)
+
+
+class TestSignalAggregation:
+    def test_empty_returns_empty_list(self, db):
+        from api.database import DatabaseService
+
+        result = DatabaseService.get_signal_aggregation_by_date(db, "AAPL")
+        assert result == []
+
+    def test_aggregation_structure(self, db):
+        from api.database import DatabaseService
+
+        DatabaseService.save_signal(db, "AAPL", "BUY", 0.5, 0.4, 0.3, 0.7, 175.0, 2.5)
+        result = DatabaseService.get_signal_aggregation_by_date(db, "AAPL", days=1)
+        if result:
+            assert "date" in result[0]
+            assert "count" in result[0]
+            assert "avg_score" in result[0]
+
+    def test_signal_count_correct(self, db):
+        from api.database import DatabaseService
+
+        for _ in range(3):
+            DatabaseService.save_signal(db, "TSLA", "HOLD", 0.0, 0.0, 0.0, 0.5, 250.0, 0.0)
+        result = DatabaseService.get_signal_aggregation_by_date(db, "TSLA", days=1)
+        if result:
+            assert result[0]["count"] == 3
