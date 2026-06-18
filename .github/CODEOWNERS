@@ -1,0 +1,15 @@
+# Default owner for all files
+* @atharvadevne123
+
+# API layer
+/api/ @atharvadevne123
+
+# ML models and signal engine
+/analysis/ @atharvadevne123
+/nlp/ @atharvadevne123
+
+# Tests
+/tests/ @atharvadevne123
+
+# CI/CD
+/.github/workflows/ @atharvadevne123
