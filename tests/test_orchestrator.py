@@ -140,3 +140,37 @@ class TestPortfolioSummary:
         ]
         summary = orchestrator._generate_portfolio_summary(analyses)
         assert summary["recommendation"] == "NEUTRAL"
+
+    def test_empty_analyses_returns_neutral(self, orchestrator):
+        summary = orchestrator._generate_portfolio_summary([])
+        assert summary["recommendation"] == "NEUTRAL"
+
+    def test_summary_has_total_tickers(self, orchestrator):
+        analyses = [{"signal": {"final_signal": "BUY"}}] * 3
+        summary = orchestrator._generate_portfolio_summary(analyses)
+        assert summary.get("total_tickers") == 3
+
+    @pytest.mark.parametrize("signal,expected", [
+        ("STRONG_BUY", "BULLISH"),
+        ("STRONG_SELL", "BEARISH"),
+        ("HOLD", "NEUTRAL"),
+    ])
+    def test_single_signal_recommendation(self, orchestrator, signal: str, expected: str):
+        analyses = [{"signal": {"final_signal": signal}}]
+        summary = orchestrator._generate_portfolio_summary(analyses)
+        assert summary["recommendation"] == expected
+
+
+class TestAnalyzeTickerEdgeCases:
+    def test_analyze_ticker_returns_ticker_field(self, orchestrator):
+        result = orchestrator.analyze_ticker("AAPL")
+        assert result["ticker"] == "AAPL"
+
+    def test_analyze_ticker_with_large_hours(self, orchestrator):
+        result = orchestrator.analyze_ticker("MSFT", hours=720)
+        assert isinstance(result, dict)
+
+    def test_analyze_ticker_no_articles(self, orchestrator):
+        orchestrator.news_aggregator.get_ticker_news.return_value = []
+        result = orchestrator.analyze_ticker("AAPL")
+        assert result["news"]["articles_found"] == 0
