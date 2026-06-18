@@ -62,6 +62,11 @@ class RSSFeedScraper:
         "bloomberg": "https://feeds.bloomberg.com/markets/news.rss",
         "seeking_alpha": "https://seekingalpha.com/feed.xml",
         "market_watch": "https://feeds.marketwatch.com/marketwatch/topstories/",
+        "ft_markets": "https://www.ft.com/rss/home/uk",
+        "wsj_markets": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml",
+        "nasdaq_news": "https://www.nasdaq.com/feed/rssoutbound?category=Markets",
+        "investopedia": "https://www.investopedia.com/feedbuilder/feed/getfeed/?feedName=investopedia_articles",
+        "yahoo_finance": "https://finance.yahoo.com/news/rssindex",
     }
 
     def __init__(self, timeout: int = 10):
