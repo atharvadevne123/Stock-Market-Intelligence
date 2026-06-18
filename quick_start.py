@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import sys
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
 
 REQUIRED_PACKAGES: list[str] = [
@@ -32,50 +32,50 @@ def check_environment() -> list[str]:
     Returns:
         List of missing package names.
     """
-    print("=" * 80)
-    print("CHECKING ENVIRONMENT")
-    print("=" * 80)
+    logger.info("=" * 60)
+    logger.info("CHECKING ENVIRONMENT")
+    logger.info("=" * 60)
     missing: list[str] = []
     for package in REQUIRED_PACKAGES:
         try:
             __import__(package)
-            print(f"  OK  {package}")
+            logger.info("  OK  %s", package)
         except ImportError:
-            print(f"  MISSING  {package}")
+            logger.warning("  MISSING  %s", package)
             missing.append(package)
     return missing
 
 
 def demo_news_scraper() -> None:
     """Demonstrate the news scraper with a sample ticker."""
-    print("=" * 80)
-    print("DEMO: NEWS SCRAPER")
-    print("=" * 80)
+    logger.info("=" * 60)
+    logger.info("DEMO: NEWS SCRAPER")
+    logger.info("=" * 60)
     try:
         from scraper.news_scraper import NewsAggregator
 
         aggregator = NewsAggregator()
         articles = aggregator.get_ticker_news("AAPL", hours=6)
-        print(f"  Found {len(articles)} articles for AAPL (last 6h)")
+        logger.info("Found %d articles for AAPL (last 6h)", len(articles))
         for a in articles[:3]:
-            print(f"  - {a.title[:80]}")
+            logger.info("  - %s", a.title[:80])
     except Exception:
         logger.exception("News scraper demo failed")
 
 
 def demo_technical_analysis() -> None:
     """Demonstrate the technical signal engine."""
-    print("=" * 80)
-    print("DEMO: TECHNICAL ANALYSIS")
-    print("=" * 80)
+    logger.info("=" * 60)
+    logger.info("DEMO: TECHNICAL ANALYSIS")
+    logger.info("=" * 60)
     try:
         from analysis.signal_engine import ComprehensiveSignalEngine
 
         engine = ComprehensiveSignalEngine()
         result = engine.technical_generator.generate_technical_signal("AAPL")
-        print(f"  Signal: {result.get('signal')}")
-        print(f"  Price:  ${result.get('latest_price')}")
-        print(f"  Change: {result.get('price_change_percent')}%")
+        logger.info("Signal: %s", result.get("signal"))
+        logger.info("Price:  $%s", result.get("latest_price"))
+        logger.info("Change: %s%%", result.get("price_change_percent"))
     except Exception:
         logger.exception("Technical analysis demo failed")
 
@@ -84,12 +84,12 @@ def main() -> int:
     """Entry point."""
     missing = check_environment()
     if missing:
-        print(f"\nInstall missing packages: pip install {' '.join(missing)}")
+        logger.error("Install missing packages: pip install %s", " ".join(missing))
         return 1
 
     demo_news_scraper()
     demo_technical_analysis()
-    print("\nQuick start complete. Run `make run` to start the API server.")
+    logger.info("Quick start complete. Run `make run` to start the API server.")
     return 0
 
 
