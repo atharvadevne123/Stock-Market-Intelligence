@@ -154,6 +154,42 @@ class TechnicalSignalGenerator:
             return Signal.SELL, result
         return Signal.HOLD, result
 
+    def analyze_stochastic(
+        self,
+        high: pd.Series,
+        low: pd.Series,
+        close: pd.Series,
+    ) -> tuple[Signal, dict]:
+        """Generate stochastic oscillator signal."""
+        k_series, d_series = self.indicators.calculate_stochastic(high, low, close)
+        if k_series is None or d_series is None:
+            return Signal.HOLD, {}
+        k = float(k_series.iloc[-1])
+        d = float(d_series.iloc[-1])
+        result = {"k": round(k, 2), "d": round(d, 2)}
+        if k < 20 and d < 20:
+            return Signal.BUY, result
+        if k > 80 and d > 80:
+            return Signal.SELL, result
+        return Signal.HOLD, result
+
+    def analyze_williams_r(
+        self,
+        high: pd.Series,
+        low: pd.Series,
+        close: pd.Series,
+    ) -> tuple[Signal, float]:
+        """Generate Williams %R signal."""
+        willr = self.indicators.calculate_williams_r(high, low, close)
+        if willr is None:
+            return Signal.HOLD, 0.0
+        value = float(willr.iloc[-1])
+        if value < -80:
+            return Signal.BUY, value
+        if value > -20:
+            return Signal.SELL, value
+        return Signal.HOLD, value
+
     def analyze_bollinger_bands(self, prices: pd.Series) -> tuple[Signal, dict]:
         """Generate Bollinger Band squeeze/break signal."""
         upper, middle, lower = self.indicators.calculate_bollinger_bands(prices)
