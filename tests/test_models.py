@@ -199,6 +199,95 @@ class TestBacktestResultModel:
         assert "MSFT" in repr(br)
 
 
+class TestWatchListModel:
+    def test_create_watchlist(self, session):
+        from database.models import WatchList
+
+        wl = WatchList(name="Tech Giants", tickers="AAPL,MSFT,GOOGL")
+        session.add(wl)
+        session.commit()
+        assert wl.id is not None
+
+    def test_ticker_list_method(self, session):
+        from database.models import WatchList
+
+        wl = WatchList(name="EV", tickers="TSLA, RIVN, LCID")
+        assert wl.ticker_list() == ["TSLA", "RIVN", "LCID"]
+
+    def test_repr(self, session):
+        from database.models import WatchList
+
+        wl = WatchList(name="My List", tickers="AAPL")
+        session.add(wl)
+        session.commit()
+        assert "My List" in repr(wl)
+
+    def test_description_optional(self, session):
+        from database.models import WatchList
+
+        wl = WatchList(name="No Desc", tickers="AAPL")
+        session.add(wl)
+        session.commit()
+        assert wl.description is None
+
+    @pytest.mark.parametrize("name,tickers", [
+        ("Momentum", "AAPL,MSFT"),
+        ("Dividend", "JNJ,PG,KO"),
+        ("Growth", "AMZN,GOOGL,META"),
+    ])
+    def test_various_watchlists(self, session, name: str, tickers: str):
+        from database.models import WatchList
+
+        wl = WatchList(name=name, tickers=tickers)
+        session.add(wl)
+        session.commit()
+        assert wl.name == name
+        assert len(wl.ticker_list()) > 0
+
+
+class TestUserPreferencesModel:
+    def test_create_preference(self, session):
+        from database.models import UserPreferences
+
+        pref = UserPreferences(key="default_hours", value="24")
+        session.add(pref)
+        session.commit()
+        assert pref.id is not None
+
+    def test_unique_key_constraint(self, session):
+        from sqlalchemy.exc import IntegrityError
+
+        from database.models import UserPreferences
+
+        session.add(UserPreferences(key="theme", value="dark"))
+        session.commit()
+        session.add(UserPreferences(key="theme", value="light"))
+        with pytest.raises(IntegrityError):
+            session.commit()
+
+    def test_repr(self, session):
+        from database.models import UserPreferences
+
+        pref = UserPreferences(key="notify", value="true")
+        session.add(pref)
+        session.commit()
+        assert "notify" in repr(pref)
+
+    @pytest.mark.parametrize("key,value", [
+        ("refresh_interval", "60"),
+        ("max_tickers", "10"),
+        ("signal_threshold", "0.7"),
+    ])
+    def test_various_preferences(self, session, key: str, value: str):
+        from database.models import UserPreferences
+
+        pref = UserPreferences(key=key, value=value)
+        session.add(pref)
+        session.commit()
+        assert pref.key == key
+        assert pref.value == value
+
+
 class TestInitDb:
     def test_init_db_creates_tables(self):
         eng = create_engine("sqlite:///:memory:")
@@ -211,3 +300,19 @@ class TestInitDb:
         assert "articles" in tables
         assert "signals" in tables
         assert "sentiments" in tables
+
+    def test_init_db_creates_watchlist_table(self):
+        eng = create_engine("sqlite:///:memory:")
+        from database import models
+
+        models.Base.metadata.create_all(eng)
+        tables = inspect(eng).get_table_names()
+        assert "watchlists" in tables
+
+    def test_init_db_creates_user_preferences_table(self):
+        eng = create_engine("sqlite:///:memory:")
+        from database import models
+
+        models.Base.metadata.create_all(eng)
+        tables = inspect(eng).get_table_names()
+        assert "user_preferences" in tables
