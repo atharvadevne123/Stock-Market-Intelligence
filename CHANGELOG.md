@@ -20,11 +20,21 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **URL hash deduplication** — `NewsArticle.url_hash` property; `RSSFeedScraper.fetch_all_feeds` deduplicates
 - **Retry logic in `RSSFeedScraper.fetch_feed`** — up to 3 attempts with exponential backoff
 - **`get_recent_signals`, `delete_old_articles`, `get_signal_aggregation_by_date`** — new `DatabaseService` methods
+- **`PortfolioRiskCalculator`** — historical VaR, Sharpe ratio, max drawdown, correlation, portfolio volatility
+- **`PerformanceMetrics`** — CAGR, Sortino ratio, Calmar ratio
+- **`SimpleBacktester`** — vectorised long-only backtest with commission and Sharpe tracking
+- **`TTLCache`** — thread-safe in-memory cache with per-entry TTL expiry and max-size LRU eviction
+- **`utils/formatters.py`** — `format_currency`, `format_percentage`, `format_signal_label`
+- **`api/schemas.py`** — Pydantic response schemas for all endpoints
+- **`GET /api/portfolio/risk/{ticker}`** — VaR, Sharpe, drawdown, volatility endpoint
+- **`scripts/seed_data.py`** — development seed script for SQLite databases
+- **`docs/ARCHITECTURE.md`** — system layers diagram and component descriptions
+- **`.github/workflows/security.yml`** — weekly pip-audit and Trivy vulnerability scans
 - **GitHub issue templates** — bug report and feature request templates
 - **GitHub PR template** — standard checklist-based PR description
 - **CODEOWNERS** — automatic review assignment
 - **CODE_OF_CONDUCT.md** — Contributor Covenant
-- **150+ new tests** — scheduler, technical indicators, API ticker validation, DB service methods, sentiment threshold
+- **200+ new tests** — scheduler, technical indicators, API ticker validation, DB service methods, sentiment threshold, portfolio risk, performance metrics, backtester, TTL cache, utils
 
 ### Changed (2026-06-18)
 - `scraper/news_scraper.py` — replaced `print()` with structured logging in `__main__` block
