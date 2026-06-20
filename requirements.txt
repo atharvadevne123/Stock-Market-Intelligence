@@ -9,7 +9,7 @@ lxml==6.1.1
 selenium==4.36.0
 
 # Reddit API (PRAW)
-praw==7.8.1
+praw==7.8.2
 
 # NLP & Sentiment Analysis (Python 3.9 compatible)
 transformers==4.57.6
