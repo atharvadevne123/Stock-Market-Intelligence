@@ -1,5 +1,5 @@
 # Core Dependencies
-python-dotenv==1.0.0
+python-dotenv==1.2.1
 requests==2.32.5
 
 # Web Scraping & Parsing
