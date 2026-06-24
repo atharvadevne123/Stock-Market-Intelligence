@@ -15,10 +15,13 @@ def client():
     with (
         patch("api.main.StockMarketIntelligence"),
         patch("api.main.ComprehensiveSignalEngine"),
+        patch("api.main.NewsAggregator"),
+        patch("api.main.NewsArticleSentimentAnalyzer"),
     ):
         from api.main import app
 
-        return TestClient(app, raise_server_exceptions=False)
+        with TestClient(app, raise_server_exceptions=False) as c:
+            yield c
 
 
 class TestPortfolioRiskEndpoint:
