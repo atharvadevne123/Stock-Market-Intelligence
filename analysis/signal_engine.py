@@ -58,7 +58,11 @@ class TechnicalIndicator:
         """Return (upper, middle, lower) Bollinger Band series."""
         bb = ta.bbands(prices, length=period)
         if bb is not None and len(bb.columns) >= 3:
-            return bb.iloc[:, 0], bb.iloc[:, 1], bb.iloc[:, 2]
+            cols = bb.columns.tolist()
+            upper_col = next((c for c in cols if c.startswith("BBU_")), cols[2])
+            mid_col = next((c for c in cols if c.startswith("BBM_")), cols[1])
+            lower_col = next((c for c in cols if c.startswith("BBL_")), cols[0])
+            return bb[upper_col], bb[mid_col], bb[lower_col]
         return None, None, None
 
     @staticmethod
