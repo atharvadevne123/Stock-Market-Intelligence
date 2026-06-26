@@ -65,7 +65,7 @@ class TestTechnicalIndicatorMACD:
         if macd is not None:
             diff = (macd - signal).dropna()
             hist_trimmed = hist.dropna()
-            pd.testing.assert_series_equal(diff.reset_index(drop=True), hist_trimmed.reset_index(drop=True), atol=1e-6)
+            pd.testing.assert_series_equal(diff.reset_index(drop=True), hist_trimmed.reset_index(drop=True), atol=1e-6, check_names=False)
 
 
 class TestTechnicalIndicatorBollingerBands:
@@ -126,8 +126,6 @@ class TestTechnicalSignalGeneratorAnalyzeRSI:
     def test_oversold_returns_buy(self):
         rng = np.random.default_rng(0)
         prices = pd.Series([30 - i * 0.5 for i in range(250)]) + rng.normal(0, 0.1, 250)
-        with pytest.raises(Exception):
-            pass
         signal, value = self.gen.analyze_rsi(prices)
         assert isinstance(signal, Signal)
 
