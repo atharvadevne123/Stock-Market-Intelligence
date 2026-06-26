@@ -127,6 +127,7 @@ class StockMarketIntelligence:
 
         return {
             "total_analyzed": len(analyses),
+            "total_tickers": len(analyses),
             "signal_distribution": signal_counts,
             "recommendation": self._get_portfolio_recommendation(signal_counts),
         }
@@ -136,9 +137,9 @@ class StockMarketIntelligence:
         """Return a high-level portfolio stance based on signal distribution."""
         buy_signals = signal_counts["STRONG_BUY"] + signal_counts["BUY"]
         sell_signals = signal_counts["STRONG_SELL"] + signal_counts["SELL"]
-        if buy_signals > sell_signals + 1:
+        if buy_signals > sell_signals:
             return "BULLISH"
-        if sell_signals > buy_signals + 1:
+        if sell_signals > buy_signals:
             return "BEARISH"
         return "NEUTRAL"
 
