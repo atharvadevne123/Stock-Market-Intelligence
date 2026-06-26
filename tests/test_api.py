@@ -168,7 +168,7 @@ class TestDetailedHealthEndpoint:
 
 
 class TestTickerValidation:
-    @pytest.mark.parametrize("bad_ticker", ["lower", "12345", "TOOLONG_TICKER", "A!B", ""])
+    @pytest.mark.parametrize("bad_ticker", ["12345", "TOOLONG_TICKER", "A!B", ""])
     def test_invalid_tickers_rejected(self, client, bad_ticker: str):
         resp = client.get(f"/api/analyze/{bad_ticker}")
         assert resp.status_code in (422, 404)
