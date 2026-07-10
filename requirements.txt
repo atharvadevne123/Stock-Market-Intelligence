@@ -32,7 +32,7 @@ python-multipart==0.0.6
 # Database
 sqlalchemy==2.0.50
 psycopg2-binary==2.9.12
-alembic==1.16.5
+alembic==1.18.5
 
 # Data Processing
 python-dateutil==2.9.0.post0
