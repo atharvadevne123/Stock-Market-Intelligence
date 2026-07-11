@@ -13,7 +13,7 @@ praw==8.0.2
 
 # NLP & Sentiment Analysis (Python 3.9 compatible)
 transformers==5.13.0
-torch==2.8.0
+torch==2.13.0
 datasets==4.5.0
 
 # Financial Data & Technical Analysis (Python 3.9 compatible)
