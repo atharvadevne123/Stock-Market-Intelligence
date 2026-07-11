@@ -19,7 +19,7 @@ datasets==4.5.0
 # Financial Data & Technical Analysis (Python 3.9 compatible)
 yfinance==1.4.1
 pandas==2.3.3
-pandas-ta-classic>=0.4.47
+pandas-ta-classic>=0.6.52
 numpy>=2.0.2
 
 # API & Web Framework
