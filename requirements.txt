@@ -6,7 +6,7 @@ requests==2.32.5
 beautifulsoup4==4.15.0
 feedparser==6.0.12
 lxml==6.1.1
-selenium==4.36.0
+selenium==4.46.0
 
 # Reddit API (PRAW)
 praw==8.0.2
